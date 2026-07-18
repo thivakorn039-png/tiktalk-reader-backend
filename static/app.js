@@ -45,13 +45,17 @@ const DOM = {
     pitchValue: document.getElementById('pitch-value'),
     
     // Templates
-    ttsTabs: document.querySelectorAll('.tts-tab'),
-    templateBoxes: document.querySelectorAll('.template-box'),
+    ttsTabs: document.querySelectorAll('.segment'),
+    templateBoxes: document.querySelectorAll('.tts-main-view'),
     templateComment: document.getElementById('template-comment'),
     templateGift: document.getElementById('template-gift'),
     templateFollow: document.getElementById('template-follow'),
     templateShare: document.getElementById('template-share'),
-    resetTemplateBtn: document.getElementById('reset-template'),
+    resetTemplateCommentBtn: document.getElementById('reset-template-comment'),
+    resetTemplateGiftBtn: document.getElementById('reset-template-gift'),
+    charCountComment: document.getElementById('char-count-comment'),
+    charCountGift: document.getElementById('char-count-gift'),
+    currentVoiceLang: document.getElementById('current-voice-lang'),
     previewVoiceBtn: document.getElementById('preview-voice-btn')
 };
 
@@ -332,41 +336,54 @@ function loadSettings() {
     DOM.templateShare.value = localStorage.getItem('tpl_share') || DEFAULT_SHARE;
     
     DOM.speedSlider.value = localStorage.getItem('tts_speed') || "1.0";
-    DOM.speedValue.textContent = DOM.speedSlider.value;
+    DOM.speedValue.textContent = Math.round(parseFloat(DOM.speedSlider.value) * 50);
     
     if(DOM.pitchSlider) {
         DOM.pitchSlider.value = localStorage.getItem('tts_pitch') || "1.0";
-        DOM.pitchValue.textContent = DOM.pitchSlider.value;
+        DOM.pitchValue.textContent = Math.round(parseFloat(DOM.pitchSlider.value) * 50);
     }
+    
+    if(DOM.charCountComment) DOM.charCountComment.textContent = `${DOM.templateComment.value.length}/160`;
+    if(DOM.charCountGift) DOM.charCountGift.textContent = `${DOM.templateGift.value.length}/160`;
 }
 loadSettings();
 
 // Save Settings Event Listeners
-DOM.templateComment.addEventListener('input', () => localStorage.setItem('tpl_comment', DOM.templateComment.value));
-DOM.templateGift.addEventListener('input', () => localStorage.setItem('tpl_gift', DOM.templateGift.value));
+DOM.templateComment.addEventListener('input', () => {
+    localStorage.setItem('tpl_comment', DOM.templateComment.value);
+    DOM.charCountComment.textContent = `${DOM.templateComment.value.length}/160`;
+});
+DOM.templateGift.addEventListener('input', () => {
+    localStorage.setItem('tpl_gift', DOM.templateGift.value);
+    DOM.charCountGift.textContent = `${DOM.templateGift.value.length}/160`;
+});
 DOM.templateFollow.addEventListener('input', () => localStorage.setItem('tpl_follow', DOM.templateFollow.value));
 DOM.templateShare.addEventListener('input', () => localStorage.setItem('tpl_share', DOM.templateShare.value));
 DOM.speedSlider.addEventListener('input', (e) => {
-    DOM.speedValue.textContent = parseFloat(e.target.value).toFixed(1);
+    DOM.speedValue.textContent = Math.round(parseFloat(e.target.value) * 50);
     localStorage.setItem('tts_speed', e.target.value);
 });
 if(DOM.pitchSlider) {
     DOM.pitchSlider.addEventListener('input', (e) => {
-        DOM.pitchValue.textContent = parseFloat(e.target.value).toFixed(1);
+        DOM.pitchValue.textContent = Math.round(parseFloat(e.target.value) * 50);
         localStorage.setItem('tts_pitch', e.target.value);
     });
 }
 
-DOM.resetTemplateBtn.addEventListener('click', () => {
-    DOM.templateComment.value = DEFAULT_COMMENT;
-    DOM.templateGift.value = DEFAULT_GIFT;
-    DOM.templateFollow.value = DEFAULT_FOLLOW;
-    DOM.templateShare.value = DEFAULT_SHARE;
-    localStorage.setItem('tpl_comment', DEFAULT_COMMENT);
-    localStorage.setItem('tpl_gift', DEFAULT_GIFT);
-    localStorage.setItem('tpl_follow', DEFAULT_FOLLOW);
-    localStorage.setItem('tpl_share', DEFAULT_SHARE);
-});
+if (DOM.resetTemplateCommentBtn) {
+    DOM.resetTemplateCommentBtn.addEventListener('click', () => {
+        DOM.templateComment.value = DEFAULT_COMMENT;
+        localStorage.setItem('tpl_comment', DEFAULT_COMMENT);
+        DOM.charCountComment.textContent = `${DOM.templateComment.value.length}/160`;
+    });
+}
+if (DOM.resetTemplateGiftBtn) {
+    DOM.resetTemplateGiftBtn.addEventListener('click', () => {
+        DOM.templateGift.value = DEFAULT_GIFT;
+        localStorage.setItem('tpl_gift', DEFAULT_GIFT);
+        DOM.charCountGift.textContent = `${DOM.templateGift.value.length}/160`;
+    });
+}
 
 // Sync Home Toggles
 DOM.homeToggleAlerts.addEventListener('change', (e) => {
@@ -394,7 +411,7 @@ DOM.ttsTabs.forEach(btn => {
         DOM.templateBoxes.forEach(t => t.style.display = 'none');
         
         btn.classList.add('active');
-        document.getElementById(`template-box-${btn.dataset.tts}`).style.display = 'block';
+        document.getElementById(`tts-view-${btn.dataset.mainTts}`).style.display = 'block';
     });
 });
 
@@ -420,6 +437,17 @@ function populateVoiceList() {
         option.value = index;
         DOM.voiceSelect.appendChild(option);
     });
+    
+    if (DOM.voiceSelect) {
+        DOM.voiceSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'cloud') {
+                DOM.currentVoiceLang.textContent = 'ไทย';
+            } else {
+                const v = voices[e.target.value];
+                DOM.currentVoiceLang.textContent = v ? v.lang : 'Unknown';
+            }
+        });
+    }
 }
 populateVoiceList();
 if (speechSynthesis.onvoiceschanged !== undefined) {

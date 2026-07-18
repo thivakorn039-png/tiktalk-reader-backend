@@ -191,63 +191,170 @@
 
         <!-- TAB 3: ทีทีเอส (TTS) -->
         <section id="tab-tts" class="tab-pane">
-            <div class="settings-card">
-                <h4 class="card-title">การตั้งค่าเสียง</h4>
-                <div class="voice-select-wrapper">
-                    <select id="voice-select"></select>
+            
+            <div class="top-segmented-control">
+                <button class="segment active" data-main-tts="comment">การสนทนาข้อความเป็นคำพูด</button>
+                <button class="segment" data-main-tts="gift">ข้อความเป็นของขวัญคำพูด</button>
+            </div>
+
+            <!-- Voice Settings (Shared) -->
+            <div class="settings-card" style="margin-top: 1rem;">
+                <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem; text-transform: uppercase;">การตั้งค่าเสียง</h4>
+                <div class="voice-select-wrapper" style="background: var(--bg-card); border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; position: relative;">
+                    <div>
+                        <div style="font-size: 1rem; color: #fff;">กูเกิลวอยซ์</div>
+                        <div style="font-size: 0.8rem; color: #a0aec0;" id="current-voice-lang">ไทย</div>
+                    </div>
+                    <div style="color: #a0aec0;">&gt;</div>
+                    <select id="voice-select" style="position: absolute; opacity: 0; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer;"></select>
                 </div>
                 
-                <div class="slider-row">
-                    <label>ความเร็วเริ่มต้น</label>
-                    <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="1.0">
-                    <span class="val-display" id="speed-value">1.0</span>
-                </div>
-                <div class="slider-row">
-                    <label>ระดับเสียงเริ่มต้น</label>
-                    <input type="range" id="pitch-slider" min="0" max="2" step="0.1" value="1.0">
-                    <span class="val-display" id="pitch-value">1.0</span>
-                </div>
-                <div class="slider-row" style="opacity: 0.5;">
-                    <label>ปริมาณ (Volume)</label>
-                    <input type="range" min="0" max="1" step="0.1" value="1.0" disabled>
-                    <span class="val-display">1.0</span>
-                </div>
-
-                <div id="preview-voice-btn" class="preview-btn">
-                    <span style="color: var(--accent-gold);">▶</span> ตัวอย่างเสียง
+                <div style="background: var(--bg-card); border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.5rem;">
+                    <div class="slider-row">
+                        <label>ความเร็วเริ่มต้น</label>
+                        <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <span class="val-display" id="speed-value">50</span>
+                    </div>
+                    <div class="slider-row" style="margin-top: 1.5rem;">
+                        <label>ระดับเสียงเริ่มต้น</label>
+                        <input type="range" id="pitch-slider" min="0" max="2" step="0.1" value="1.0">
+                        <span class="val-display" id="pitch-value">50</span>
+                    </div>
+                    <div class="slider-row" style="margin-top: 1.5rem; opacity: 0.5;">
+                        <label>ปริมาณ</label>
+                        <input type="range" min="0" max="1" step="0.1" value="1.0" disabled>
+                        <span class="val-display">🔊</span>
+                    </div>
+                    
+                    <div style="border-top: 1px solid var(--border-color); margin-top: 1.5rem; padding-top: 1rem;">
+                        <div id="preview-voice-btn" class="preview-btn" style="text-align: center; color: var(--accent-gold); font-weight: bold; cursor: pointer;">
+                            <span>▶</span> ตัวอย่างเสียง
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="settings-card">
-                <h4 class="card-title">เทมเพลตข้อความ</h4>
-                <div class="tts-tabs">
-                    <button class="tts-tab active" data-tts="comment">แชท</button>
-                    <button class="tts-tab" data-tts="gift">ของขวัญ</button>
-                    <button class="tts-tab" data-tts="follow">ติดตาม</button>
-                    <button class="tts-tab" data-tts="share">แชร์</button>
+            <!-- Comment Settings Tab View -->
+            <div id="tts-view-comment" class="tts-main-view active">
+                <div class="settings-card">
+                    <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem;">สิทธิ์ที่ได้รับอนุญาต</h4>
+                    <div style="background: var(--bg-card); border-radius: 0.5rem; padding: 0.5rem 1rem;">
+                        <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span>ผู้ใช้ทั้งหมด</span>
+                            <label class="ios-switch">
+                                <input type="checkbox" checked disabled>
+                                <span class="slider" style="background: #10b981;"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span>ผู้ติดตาม</span>
+                            <label class="ios-switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                        </div>
+                        <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span>สมาชิก</span>
+                            <label class="ios-switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                        </div>
+                        <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span>ผู้ดูแลระบบ</span>
+                            <label class="ios-switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                        </div>
+                        <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span>สมาชิกในทีม <span style="font-size: 0.8rem; color: #a0aec0;">ระดับขั้นต่ำ: (ระดับ) &gt;</span></span>
+                            <label class="ios-switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                        </div>
+                        <div class="setting-row" style="padding: 0.5rem 0;">
+                            <span>ผู้ให้ของขวัญชั้นนำ <span style="font-size: 0.8rem; color: #a0aec0;">ตำแหน่ง: 3 &gt;</span></span>
+                            <label class="ios-switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                        </div>
+                    </div>
                 </div>
-                
-                <div id="template-box-comment" class="template-box">
-                    <div class="desc">ตัวแปร: {nickName} = ชื่อคนพิมพ์, {comment} = ข้อความ</div>
-                    <textarea id="template-comment" rows="3"></textarea>
+
+                <div class="settings-card">
+                    <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem;">เงื่อนไขคำสั่ง</h4>
+                    <div style="background: var(--bg-card); border-radius: 0.5rem; padding: 0.5rem 1rem;">
+                        <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span style="color: var(--accent-gold);">อ่านทุกความคิดเห็นใด ๆ</span>
+                            <span style="color: var(--accent-gold);">✓</span>
+                        </div>
+                        <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span>ความคิดเห็นที่เริ่มต้นด้วยจุด (.)</span>
+                        </div>
+                        <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span>ความคิดเห็นเริ่มต้นด้วยเครื่องหมายทับ (/)</span>
+                        </div>
+                        <div class="setting-row" style="padding: 0.75rem 0;">
+                            <span>ความคิดเห็นเริ่มต้นด้วยจุด (.) หรือเครื่องหมายทับ (/)</span>
+                        </div>
+                    </div>
                 </div>
-                
-                <div id="template-box-gift" class="template-box" style="display: none;">
-                    <div class="desc">ตัวแปร: {nickName}, {giftName}, {giftCount}</div>
-                    <textarea id="template-gift" rows="3"></textarea>
+
+                <div class="settings-card">
+                    <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem;">การป้องกันสแปม</h4>
+                    <div style="background: var(--bg-card); border-radius: 0.5rem; padding: 0.5rem 1rem;">
+                        <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span>คูลดาวน์ของผู้ใช้ (วินาที)</span>
+                            <span>0</span>
+                        </div>
+                        <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span>ความยาวคิวสูงสุด</span>
+                            <span>5</span>
+                        </div>
+                        <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                            <span>ความยาวสูงสุดของความคิดเห็น</span>
+                            <span>300</span>
+                        </div>
+                        <div class="setting-row" style="padding: 0.75rem 0;">
+                            <span>กรองจดหมายขยะ</span>
+                            <label class="ios-switch">
+                                <input type="checkbox" checked disabled>
+                                <span class="slider" style="background: #10b981;"></span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                
-                <div id="template-box-follow" class="template-box" style="display: none;">
-                    <div class="desc">ตัวแปร: {nickName} = ชื่อคนติดตาม</div>
-                    <textarea id="template-follow" rows="3"></textarea>
+
+                <div class="settings-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                        <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin:0;">เทมเพลตข้อความ</h4>
+                        <span style="font-size: 0.8rem; color: #a0aec0;" id="char-count-comment">9/160</span>
+                    </div>
+                    <textarea id="template-comment" rows="3" style="width: 100%; background: var(--bg-card); border: 1px solid transparent; color: var(--accent-gold); padding: 1rem; border-radius: 0.5rem; resize: none; margin-bottom: 0.5rem;"></textarea>
+                    
+                    <div style="background: rgba(239, 68, 68, 0.1); border-radius: 0.5rem; text-align: center; margin-top: 0.5rem;">
+                        <div id="reset-template-comment" class="reset-btn" style="color: #ef4444; background: transparent; padding: 1rem; width: 100%; cursor: pointer;">↺ รีเซ็ตเทมเพลต TTS</div>
+                    </div>
                 </div>
-                
-                <div id="template-box-share" class="template-box" style="display: none;">
-                    <div class="desc">ตัวแปร: {nickName} = ชื่อคนแชร์</div>
-                    <textarea id="template-share" rows="3"></textarea>
+            </div>
+
+            <!-- Gift Settings Tab View -->
+            <div id="tts-view-gift" class="tts-main-view" style="display: none;">
+                <div class="settings-card">
+                    <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem;">การตั้งค่าของขวัญ</h4>
+                    <div style="background: var(--bg-card); border-radius: 0.5rem; padding: 0.5rem 1rem;">
+                        <div class="setting-row" style="padding: 0.75rem 0;">
+                            <span>เหรียญขั้นต่ำ</span>
+                            <span>0</span>
+                        </div>
+                    </div>
                 </div>
-                
-                <div id="reset-template" class="reset-btn">คืนค่าเริ่มต้นเทมเพลตทั้งหมด</div>
+
+                <div class="settings-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                        <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin:0;">เทมเพลตข้อความ</h4>
+                        <span style="font-size: 0.8rem; color: #a0aec0;" id="char-count-gift">51/160</span>
+                    </div>
+                    <textarea id="template-gift" rows="3" style="width: 100%; background: var(--bg-card); border: 1px solid transparent; color: var(--accent-gold); padding: 1rem; border-radius: 0.5rem; resize: none; margin-bottom: 0.5rem;"></textarea>
+                    
+                    <div style="background: rgba(239, 68, 68, 0.1); border-radius: 0.5rem; text-align: center; margin-top: 0.5rem;">
+                        <div id="reset-template-gift" class="reset-btn" style="color: #ef4444; background: transparent; padding: 1rem; width: 100%; cursor: pointer;">↺ รีเซ็ตเทมเพลต TTS</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Follows & Shares (Hidden from UI but templates kept for backend alert logic) -->
+            <div style="display: none;">
+                <textarea id="template-follow"></textarea>
+                <textarea id="template-share"></textarea>
             </div>
         </section>
     </main>
