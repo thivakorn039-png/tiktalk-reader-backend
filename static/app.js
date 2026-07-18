@@ -3,6 +3,7 @@ const DOM = {
     setupModal: document.getElementById('setup-modal'),
     setupUsername: document.getElementById('setup-username'),
     setupSaveBtn: document.getElementById('setup-save-btn'),
+    setupCancelBtn: document.getElementById('setup-cancel-btn'),
     
     // Header & Profile Modal
     profileAvatar: document.getElementById('profile-avatar'),
@@ -126,14 +127,17 @@ DOM.btnCloseProfile.addEventListener('click', () => {
 
 DOM.btnChangeChannel.addEventListener('click', () => {
     DOM.profileModal.classList.add('hidden');
-    // Force prompt
-    tiktokUsername = '';
-    tiktokAvatar = '';
-    localStorage.removeItem('tiktok_username');
-    localStorage.removeItem('tiktok_avatar');
-    DOM.setupUsername.value = '';
-    updateProfileAvatar();
+    DOM.setupUsername.value = tiktokUsername || '';
+    if (tiktokUsername) {
+        DOM.setupCancelBtn.classList.remove('hidden');
+    } else {
+        DOM.setupCancelBtn.classList.add('hidden');
+    }
     DOM.setupModal.classList.remove('hidden');
+});
+
+DOM.setupCancelBtn.addEventListener('click', () => {
+    DOM.setupModal.classList.add('hidden');
 });
 
 // Load Settings
