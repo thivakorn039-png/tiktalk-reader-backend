@@ -65,9 +65,14 @@
         </div>
 
         <div class="overlay-footer">
-            <button id="exit-connection-btn" class="btn text-btn">โหมดออก</button>
+            <button id="btn-pip" class="btn" style="background: #3b82f6; margin-bottom: 0.5rem; width: 100%;">เปิดจอเล็กลอยตัว (PiP)</button>
+            <button id="exit-connection-btn" class="text-btn" style="color: #ef4444;">โหมดออก</button>
         </div>
     </div>
+
+    <!-- Hidden Elements for PiP -->
+    <canvas id="pip-canvas" width="600" height="300" style="display:none;"></canvas>
+    <video id="pip-video" autoplay playsinline muted style="display:none;"></video>
     
     <!-- Top Header -->
     <header class="top-header">

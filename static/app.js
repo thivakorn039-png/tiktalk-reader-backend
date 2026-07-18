@@ -17,6 +17,7 @@ const DOM = {
     startBtn: document.getElementById('start-btn'),
     connectionOverlay: document.getElementById('connection-overlay'),
     exitConnectionBtn: document.getElementById('exit-connection-btn'),
+    btnPip: document.getElementById('btn-pip'),
     overlayStatusText: document.getElementById('overlay-status-text'),
     overlayStatusDesc: document.getElementById('overlay-status-desc'),
     
@@ -60,6 +61,91 @@ let isSpeaking = false;
 let recentMessages = new Set();
 let tiktokUsername = localStorage.getItem('tiktok_username') || '';
 let tiktokAvatar = localStorage.getItem('tiktok_avatar') || '';
+
+// PiP Manager Class
+class PiPManager {
+    constructor() {
+        this.canvas = document.getElementById('pip-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.video = document.getElementById('pip-video');
+        this.messages = [];
+        this.stream = null;
+        this.init();
+    }
+    
+    init() {
+        this.draw();
+        try {
+            this.stream = this.canvas.captureStream(2); 
+            this.video.srcObject = this.stream;
+            this.video.play().catch(()=>{});
+        } catch(e) {
+            console.warn("Canvas captureStream not supported");
+        }
+    }
+    
+    addMessage(user, type, content) {
+        let prefix = type === 'gift' ? '🎁' : (type === 'comment' ? '💬' : '🔔');
+        this.messages.push({user, content, prefix});
+        if(this.messages.length > 4) this.messages.shift();
+        this.draw();
+    }
+    
+    draw() {
+        this.ctx.fillStyle = '#14161a';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.ctx.fillStyle = '#3b82f6';
+        this.ctx.font = 'bold 24px Inter, sans-serif';
+        this.ctx.fillText(`TikTalk @${tiktokUsername}`, 20, 35);
+        
+        this.ctx.strokeStyle = '#242931';
+        this.ctx.beginPath();
+        this.ctx.moveTo(20, 50);
+        this.ctx.lineTo(580, 50);
+        this.ctx.stroke();
+        
+        let y = 80;
+        this.messages.forEach(msg => {
+            this.ctx.font = 'bold 18px Inter, sans-serif';
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.fillText(`${msg.prefix} ${msg.user ? '@'+msg.user+':' : ''}`, 20, y);
+            
+            this.ctx.font = '18px Inter, sans-serif';
+            this.ctx.fillStyle = '#a0aec0';
+            this.ctx.fillText(msg.content.substring(0, 50), 20, y + 25);
+            y += 55;
+        });
+    }
+
+    startLoop() {
+        const loop = () => {
+            this.draw();
+            this.ctx.fillStyle = Date.now() % 1000 > 500 ? '#14161a' : '#1f2229';
+            this.ctx.fillRect(this.canvas.width - 5, this.canvas.height - 5, 5, 5);
+            setTimeout(loop, 1000);
+        };
+        loop();
+    }
+
+    async togglePiP() {
+        if (!document.pictureInPictureEnabled) {
+            alert("เบราว์เซอร์ของคุณไม่รองรับระบบ Picture-in-Picture (เฉพาะบางเบราว์เซอร์เช่น Chrome/Edge)");
+            return;
+        }
+        try {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else {
+                await this.video.requestPictureInPicture();
+            }
+        } catch (error) {
+            console.error("PiP Error:", error);
+            alert("เกิดข้อผิดพลาดในการเปิด Picture-in-Picture");
+        }
+    }
+}
+let pipManager = null;
 
 // Default Templates
 const DEFAULT_COMMENT = "{nickName} พูดว่า {comment}";
@@ -380,6 +466,7 @@ function connectWS() {
                 if (data.status === 'connected') {
                     updateStatus(true);
                     addLog('system', null, `เชื่อมต่อสำเร็จ: @${tiktokUsername}`);
+                    if(pipManager) pipManager.addMessage(null, 'system', `เชื่อมต่อสำเร็จ: @${tiktokUsername}`);
                     // Save avatar if available
                     if (data.avatarUrl) {
                         tiktokAvatar = data.avatarUrl;
@@ -389,6 +476,7 @@ function connectWS() {
                 } else if (data.status === 'disconnected' || data.status === 'error') {
                     updateStatus(false, data.message || 'Disconnected');
                     addLog('system', null, data.message || 'หลุดการเชื่อมต่อ');
+                    if(pipManager) pipManager.addMessage(null, 'system', data.message || 'หลุดการเชื่อมต่อ');
                 }
             } 
             else if (data.type === 'comment') {
@@ -398,6 +486,7 @@ function connectWS() {
                 if (recentMessages.size > 200) recentMessages.delete(recentMessages.values().next().value);
                 
                 addLog('comment', data.user, data.message);
+                if(pipManager) pipManager.addMessage(data.user, 'comment', data.message);
                 if (DOM.toggleComments.checked) {
                     const textToRead = formatTemplate(DOM.templateComment.value, {
                         nickName: data.user,
@@ -412,6 +501,7 @@ function connectWS() {
                 recentMessages.add(msgKey);
                 
                 addLog('gift', data.user, `ส่ง ${data.gift} x${data.count}`);
+                if(pipManager) pipManager.addMessage(data.user, 'gift', `ส่ง ${data.gift} x${data.count}`);
                 if (DOM.toggleGifts.checked) {
                     const textToRead = formatTemplate(DOM.templateGift.value, {
                         nickName: data.user,
@@ -427,6 +517,7 @@ function connectWS() {
                 recentMessages.add(msgKey);
                 
                 addLog('follow', data.user, 'เริ่มติดตามคุณ');
+                if(pipManager) pipManager.addMessage(data.user, 'follow', 'เริ่มติดตามคุณ');
                 if (DOM.toggleFollows.checked) {
                     addToQueue(`ขอบคุณ ${data.user} ที่กดติดตามครับ`, 1);
                 }
@@ -471,6 +562,14 @@ DOM.startBtn.addEventListener('click', () => {
 
 DOM.exitConnectionBtn.addEventListener('click', () => {
     disconnectWS();
+});
+
+DOM.btnPip.addEventListener('click', () => {
+    if (!pipManager) {
+        pipManager = new PiPManager();
+        pipManager.startLoop();
+    }
+    pipManager.togglePiP();
 });
 
 DOM.previewVoiceBtn.addEventListener('click', () => {
