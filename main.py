@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import sys
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -8,15 +9,23 @@ from tiktok_client import start_tiktok_client
 
 app = FastAPI(title="TikTalk AI Reader Backend")
 
+# Handle PyInstaller path
+if getattr(sys, 'frozen', False):
+    base_dir = sys._MEIPASS
+else:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+static_dir = os.path.join(base_dir, "static")
+
 # Ensure static directory exists
-os.makedirs("static", exist_ok=True)
+os.makedirs(static_dir, exist_ok=True)
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 @app.get("/")
 def read_root():
-    return FileResponse("static/index.html")
+    return FileResponse(os.path.join(static_dir, "index.html"))
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -45,3 +54,9 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         if tiktok_task and not tiktok_task.done():
             tiktok_task.cancel()
+
+if __name__ == '__main__':
+    import uvicorn
+    import multiprocessing
+    multiprocessing.freeze_support()
+    uvicorn.run(app, host='127.0.0.1', port=10000)
