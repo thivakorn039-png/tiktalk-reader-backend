@@ -36,7 +36,7 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
         async def on_comment(event: CommentEvent):
             try:
                 msg = getattr(event, 'comment', getattr(event, 'text', ''))
-                nickname = event.user.nickname if hasattr(event, 'user') and hasattr(event.user, 'nickname') else "Unknown"
+                nickname = getattr(event.user_info, 'nickname', 'Unknown') if hasattr(event, 'user_info') else 'Unknown'
                 model = ModelComment(user=nickname, message=msg)
                 await websocket.send_json(model.model_dump())
             except Exception as e:
@@ -46,25 +46,28 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
         @client.on(GiftEvent)
         async def on_gift(event: GiftEvent):
             try:
-                model = ModelGift(user=event.user.nickname, gift=event.gift.info.name, count=event.gift.count)
+                nickname = getattr(event.user_info, 'nickname', 'Unknown') if hasattr(event, 'user_info') else 'Unknown'
+                model = ModelGift(user=nickname, gift=event.gift.info.name, count=event.gift.count)
                 await websocket.send_json(model.model_dump())
-            except:
-                pass
+            except Exception as e:
+                await websocket.send_json({"type": "status", "status": "error", "message": f"Gift parsing error: {str(e)}"})
             
         @client.on(FollowEvent)
         async def on_follow(event: FollowEvent):
             try:
-                model = ModelFollow(user=event.user.nickname)
+                nickname = getattr(event.user_info, 'nickname', 'Unknown') if hasattr(event, 'user_info') else 'Unknown'
+                model = ModelFollow(user=nickname)
                 await websocket.send_json(model.model_dump())
-            except:
+            except Exception as e:
                 pass
 
         @client.on(ShareEvent)
         async def on_share(event: ShareEvent):
             try:
-                model = ModelShare(user=event.user.nickname)
+                nickname = getattr(event.user_info, 'nickname', 'Unknown') if hasattr(event, 'user_info') else 'Unknown'
+                model = ModelShare(user=nickname)
                 await websocket.send_json(model.model_dump())
-            except:
+            except Exception as e:
                 pass
 
         await client.start()
