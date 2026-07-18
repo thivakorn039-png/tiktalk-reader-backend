@@ -35,10 +35,13 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
         @client.on(CommentEvent)
         async def on_comment(event: CommentEvent):
             try:
-                model = ModelComment(user=event.user.nickname, message=event.comment)
+                msg = getattr(event, 'comment', getattr(event, 'text', ''))
+                nickname = event.user.nickname if hasattr(event, 'user') and hasattr(event.user, 'nickname') else "Unknown"
+                model = ModelComment(user=nickname, message=msg)
                 await websocket.send_json(model.model_dump())
-            except:
-                pass
+            except Exception as e:
+                import traceback
+                await websocket.send_json({"type": "status", "status": "error", "message": f"Comment parsing error: {str(e)}"})
             
         @client.on(GiftEvent)
         async def on_gift(event: GiftEvent):

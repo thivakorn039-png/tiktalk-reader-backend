@@ -91,7 +91,10 @@ const DOM = {
     bsGifterListItems: document.querySelectorAll('.bs-list-item')
 };
 
-let currentCmdCondition = localStorage.getItem('cmd_condition') || 'any';
+let currentCmdCondition = localStorage.getItem('cmd_condition');
+if (!['any', 'dot', 'slash', 'both'].includes(currentCmdCondition)) {
+    currentCmdCondition = 'any';
+}
 let permTeamLevelVal = localStorage.getItem('ui_num_permTeamLevel') || '1';
 let permGifterRankVal = localStorage.getItem('ui_num_permGifterRank') || '3';
 let lastCommentTime = 0;
