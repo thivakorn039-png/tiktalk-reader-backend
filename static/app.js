@@ -6,7 +6,10 @@ const DOM = {
     voiceSelect: document.getElementById('voice-select'),
     speedSlider: document.getElementById('speed-slider'),
     speedValue: document.getElementById('speed-value'),
-    queueCount: document.getElementById('queue-count')
+    queueCount: document.getElementById('queue-count'),
+    toggleComments: document.getElementById('toggle-comments'),
+    toggleGifts: document.getElementById('toggle-gifts'),
+    toggleFollows: document.getElementById('toggle-follows')
 };
 
 let ws = null;
@@ -179,7 +182,9 @@ function connectWS() {
                 }
                 
                 addLog('comment', data.user, data.message);
-                addToQueue(`${data.user} พิมพ์ว่า ${data.message}`, 0);
+                if (DOM.toggleComments.checked) {
+                    addToQueue(`${data.user} พิมพ์ว่า ${data.message}`, 0);
+                }
             }
             else if (data.type === 'gift') {
                 const msgKey = `gift:${data.user}:${data.gift}:${data.count}`;
@@ -187,7 +192,9 @@ function connectWS() {
                 recentMessages.add(msgKey);
                 
                 addLog('gift', data.user, `ส่ง ${data.gift} x${data.count}`);
-                addToQueue(`ขอบคุณ ${data.user} สำหรับ ${data.gift} ${data.count} ชิ้นครับ`, 2);
+                if (DOM.toggleGifts.checked) {
+                    addToQueue(`ขอบคุณ ${data.user} สำหรับ ${data.gift} ${data.count} ชิ้นครับ`, 2);
+                }
             }
             else if (data.type === 'follow') {
                 const msgKey = `follow:${data.user}`;
@@ -195,7 +202,9 @@ function connectWS() {
                 recentMessages.add(msgKey);
                 
                 addLog('follow', data.user, 'เริ่มติดตามคุณ!');
-                addToQueue(`ขอบคุณ ${data.user} ที่กดติดตามครับ`, 1);
+                if (DOM.toggleFollows.checked) {
+                    addToQueue(`ขอบคุณ ${data.user} ที่กดติดตามครับ`, 1);
+                }
             }
         } catch (e) {
             console.error('Error parsing WS message', e);
