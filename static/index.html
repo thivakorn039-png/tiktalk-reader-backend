@@ -259,11 +259,11 @@
                             <label class="ios-switch"><input type="checkbox" id="perm-mods"><span class="slider"></span></label>
                         </div>
                         <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
-                            <span>สมาชิกในทีม <span style="font-size: 0.8rem; color: #a0aec0;">ระดับขั้นต่ำ: <input type="number" id="perm-team-level" value="1" min="1" max="1000" style="background:transparent; border:none; color:var(--accent-gold); width:40px; font-family:Inter; cursor:pointer;"> &gt;</span></span>
+                            <span>สมาชิกในทีม <span style="font-size: 0.8rem; color: #a0aec0; cursor: pointer;" id="btn-team-modal">ระดับขั้นต่ำ: <span id="team-level-display" style="color:var(--accent-gold);">1</span> &gt;</span></span>
                             <label class="ios-switch"><input type="checkbox" id="perm-team"><span class="slider"></span></label>
                         </div>
                         <div class="setting-row" style="padding: 0.5rem 0;">
-                            <span>ผู้ให้ของขวัญชั้นนำ <span style="font-size: 0.8rem; color: #a0aec0;">ตำแหน่ง: <input type="number" id="perm-gifter-rank" value="3" min="1" max="5" style="background:transparent; border:none; color:var(--accent-gold); width:30px; font-family:Inter; cursor:pointer;"> &gt;</span></span>
+                            <span>ผู้ให้ของขวัญชั้นนำ <span style="font-size: 0.8rem; color: #a0aec0; cursor: pointer;" id="btn-gifter-modal">ตำแหน่ง: <span id="gifter-rank-display" style="color:var(--accent-gold);">3</span> &gt;</span></span>
                             <label class="ios-switch"><input type="checkbox" id="perm-gifters"><span class="slider"></span></label>
                         </div>
                     </div>
@@ -377,6 +377,34 @@
             <span>ทีทีเอส</span>
         </button>
     </nav>
+
+    <!-- Bottom Sheet for Team Level -->
+    <div id="bs-team" class="bs-overlay">
+        <div class="bs-sheet">
+            <div class="bs-handle"></div>
+            <div class="bs-title">ระดับขั้นต่ำของสมาชิกทีม</div>
+            <input type="number" id="bs-team-input" class="bs-input" value="1" min="1" max="1000">
+            <div class="bs-actions">
+                <button class="bs-btn" id="bs-team-cancel">ยกเลิก</button>
+                <button class="bs-btn" id="bs-team-ok">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Sheet for Gifter Rank -->
+    <div id="bs-gifter" class="bs-overlay">
+        <div class="bs-sheet">
+            <div class="bs-handle"></div>
+            <div class="bs-title">ผู้ให้ของขวัญสูงสุด</div>
+            <div id="bs-gifter-list">
+                <div class="bs-list-item" data-rank="1"><span>ด้านบน: 1</span><span class="check" style="display:none;">✓</span></div>
+                <div class="bs-list-item" data-rank="2"><span>ด้านบน: 2</span><span class="check" style="display:none;">✓</span></div>
+                <div class="bs-list-item" data-rank="3"><span>ด้านบน: 3</span><span class="check" style="display:none;">✓</span></div>
+                <div class="bs-list-item" data-rank="4"><span>ด้านบน: 4</span><span class="check" style="display:none;">✓</span></div>
+                <div class="bs-list-item" data-rank="5"><span>ด้านบน: 5</span><span class="check" style="display:none;">✓</span></div>
+            </div>
+        </div>
+    </div>
 
     <script src="/static/app.js"></script>
 </body>

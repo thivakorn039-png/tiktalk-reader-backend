@@ -72,14 +72,28 @@ const DOM = {
         spamCooldown: document.getElementById('spam-cooldown'),
         spamMaxqueue: document.getElementById('spam-maxqueue'),
         spamMaxlength: document.getElementById('spam-maxlength'),
-        giftMinCoins: document.getElementById('gift-min-coins'),
-        permTeamLevel: document.getElementById('perm-team-level'),
-        permGifterRank: document.getElementById('perm-gifter-rank')
+        giftMinCoins: document.getElementById('gift-min-coins')
     },
-    cmdConditions: document.querySelectorAll('.cmd-condition')
+    cmdConditions: document.querySelectorAll('.cmd-condition'),
+    
+    // Bottom Sheets
+    btnTeamModal: document.getElementById('btn-team-modal'),
+    btnGifterModal: document.getElementById('btn-gifter-modal'),
+    teamLevelDisplay: document.getElementById('team-level-display'),
+    gifterRankDisplay: document.getElementById('gifter-rank-display'),
+    
+    bsTeam: document.getElementById('bs-team'),
+    bsTeamInput: document.getElementById('bs-team-input'),
+    bsTeamCancel: document.getElementById('bs-team-cancel'),
+    bsTeamOk: document.getElementById('bs-team-ok'),
+    
+    bsGifter: document.getElementById('bs-gifter'),
+    bsGifterListItems: document.querySelectorAll('.bs-list-item')
 };
 
 let currentCmdCondition = localStorage.getItem('cmd_condition') || 'any';
+let permTeamLevelVal = localStorage.getItem('ui_num_permTeamLevel') || '1';
+let permGifterRankVal = localStorage.getItem('ui_num_permGifterRank') || '3';
 let lastCommentTime = 0;
 
 let ws = null;
@@ -385,6 +399,10 @@ function loadSettings() {
         }
     });
     
+    // Load Team & Gifter vals
+    if (DOM.teamLevelDisplay) DOM.teamLevelDisplay.textContent = permTeamLevelVal;
+    if (DOM.gifterRankDisplay) DOM.gifterRankDisplay.textContent = permGifterRankVal;
+    
     // Load cmd condition UI
     DOM.cmdConditions.forEach(el => {
         const checkMark = el.querySelector('.cmd-check');
@@ -489,6 +507,57 @@ DOM.cmdConditions.forEach(el => {
             }
         });
     });
+});
+
+// Bottom Sheets Logic
+if (DOM.btnTeamModal) {
+    DOM.btnTeamModal.addEventListener('click', () => {
+        DOM.bsTeamInput.value = permTeamLevelVal;
+        DOM.bsTeam.classList.add('active');
+        DOM.bsTeamInput.focus();
+    });
+}
+if (DOM.bsTeamCancel) {
+    DOM.bsTeamCancel.addEventListener('click', () => DOM.bsTeam.classList.remove('active'));
+}
+if (DOM.bsTeamOk) {
+    DOM.bsTeamOk.addEventListener('click', () => {
+        permTeamLevelVal = DOM.bsTeamInput.value;
+        localStorage.setItem('ui_num_permTeamLevel', permTeamLevelVal);
+        DOM.teamLevelDisplay.textContent = permTeamLevelVal;
+        DOM.bsTeam.classList.remove('active');
+    });
+}
+
+if (DOM.btnGifterModal) {
+    DOM.btnGifterModal.addEventListener('click', () => {
+        DOM.bsGifterListItems.forEach(item => {
+            const check = item.querySelector('.check');
+            if (item.dataset.rank === permGifterRankVal) {
+                item.classList.add('selected');
+                check.style.display = 'inline';
+            } else {
+                item.classList.remove('selected');
+                check.style.display = 'none';
+            }
+        });
+        DOM.bsGifter.classList.add('active');
+    });
+}
+DOM.bsGifterListItems.forEach(item => {
+    item.addEventListener('click', () => {
+        permGifterRankVal = item.dataset.rank;
+        localStorage.setItem('ui_num_permGifterRank', permGifterRankVal);
+        DOM.gifterRankDisplay.textContent = permGifterRankVal;
+        DOM.bsGifter.classList.remove('active');
+    });
+});
+
+// Close modals on overlay click
+window.addEventListener('click', (e) => {
+    if (e.target.classList.contains('bs-overlay')) {
+        e.target.classList.remove('active');
+    }
 });
 
 // Sync Home Toggles
