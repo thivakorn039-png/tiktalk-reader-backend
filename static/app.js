@@ -32,6 +32,13 @@ function populateVoiceList() {
     });
 
     DOM.voiceSelect.innerHTML = '';
+    
+    // Add Cloud TTS option at the top
+    const cloudOption = document.createElement('option');
+    cloudOption.textContent = "🎙️ เสียง TikTok/Siri (Cloud TTS) - แนะนำ!";
+    cloudOption.value = "cloud";
+    DOM.voiceSelect.appendChild(cloudOption);
+
     voices.forEach((voice, index) => {
         const option = document.createElement('option');
         option.textContent = `${voice.name} (${voice.lang})`;
@@ -109,25 +116,37 @@ function speakNext() {
     const nextItem = ttsQueue.shift();
     updateQueueCount();
 
-    const utterance = new SpeechSynthesisUtterance(nextItem.text);
-    
     const selectedVoiceIndex = DOM.voiceSelect.value;
-    if (voices[selectedVoiceIndex]) {
-        utterance.voice = voices[selectedVoiceIndex];
-    }
-    
-    utterance.rate = parseFloat(DOM.speedSlider.value);
-    
-    utterance.onend = () => {
-        speakNext();
-    };
-    
-    utterance.onerror = (e) => {
-        console.error('Speech synthesis error', e);
-        speakNext();
-    };
+    const speed = parseFloat(DOM.speedSlider.value);
 
-    synth.speak(utterance);
+    if (selectedVoiceIndex === 'cloud') {
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(nextItem.text)}&tl=th&client=tw-ob`;
+        const audio = new Audio(url);
+        audio.playbackRate = speed;
+        audio.onended = () => { speakNext(); };
+        audio.onerror = (e) => { 
+            console.error('Cloud TTS Error', e);
+            speakNext(); 
+        };
+        audio.play().catch(e => {
+            console.error('Audio play error', e);
+            speakNext();
+        });
+    } else {
+        const utterance = new SpeechSynthesisUtterance(nextItem.text);
+        if (voices[selectedVoiceIndex]) {
+            utterance.voice = voices[selectedVoiceIndex];
+        }
+        utterance.rate = speed;
+        
+        utterance.onend = () => { speakNext(); };
+        utterance.onerror = (e) => {
+            console.error('Speech synthesis error', e);
+            speakNext();
+        };
+
+        synth.speak(utterance);
+    }
 }
 
 function addToQueue(text, priority) {
