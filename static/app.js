@@ -85,6 +85,34 @@ class PiPManager {
     }
     
     addMessage(user, type, content) {
+        // Document PiP Sync
+        if (window.pipWindow) {
+            const container = window.pipWindow.document.getElementById('pip-log');
+            if (container) {
+                const item = document.createElement('div');
+                item.style.padding = '0.5rem';
+                item.style.background = '#242931';
+                item.style.borderRadius = '0.5rem';
+                item.style.fontSize = '0.95rem';
+                item.style.marginBottom = '0.5rem';
+                
+                if (type === 'system') {
+                    item.innerHTML = `<div style="color:#a0aec0">${content}</div>`;
+                } else {
+                    let color = type === 'gift' ? '#f59e0b' : (type === 'comment' ? '#a0aec0' : '#10b981');
+                    item.innerHTML = `
+                        <span style="color:#fff; font-weight:bold;">@${user}</span>
+                        <span style="color:${color}; margin-left:0.5rem;">${content}</span>
+                    `;
+                }
+                container.prepend(item);
+                if (container.children.length > 20) {
+                    container.lastChild.remove();
+                }
+            }
+        }
+
+        // Canvas Video PiP Sync
         let prefix = type === 'gift' ? '🎁' : (type === 'comment' ? '💬' : '🔔');
         this.messages.push({user, content, prefix});
         if(this.messages.length > 4) this.messages.shift();
@@ -129,8 +157,53 @@ class PiPManager {
     }
 
     async togglePiP() {
+        // Try modern Document PiP first (Desktop Chrome 116+)
+        if ('documentPictureInPicture' in window) {
+            try {
+                if (window.pipWindow) {
+                    window.pipWindow.close();
+                    window.pipWindow = null;
+                    return;
+                }
+                
+                const pipWindow = await documentPictureInPicture.requestWindow({
+                    width: 350,
+                    height: 500
+                });
+                window.pipWindow = pipWindow;
+                
+                pipWindow.document.body.style.background = '#14161a';
+                pipWindow.document.body.style.margin = '0';
+                pipWindow.document.body.style.padding = '1rem';
+                pipWindow.document.body.style.fontFamily = 'Inter, sans-serif';
+
+                const header = document.createElement('h3');
+                header.textContent = `Live: @${tiktokUsername}`;
+                header.style.color = '#3b82f6';
+                header.style.marginTop = '0';
+                header.style.marginBottom = '1rem';
+                header.style.fontSize = '1.2rem';
+                pipWindow.document.body.appendChild(header);
+
+                const logContainer = document.createElement('div');
+                logContainer.id = 'pip-log';
+                logContainer.style.display = 'flex';
+                logContainer.style.flexDirection = 'column';
+                pipWindow.document.body.appendChild(logContainer);
+
+                pipWindow.addEventListener("pagehide", () => {
+                    window.pipWindow = null;
+                });
+                
+                return;
+            } catch (err) {
+                console.warn("Document PiP failed, falling back to Video PiP", err);
+            }
+        }
+
+        // Fallback to Canvas Video PiP
         if (!document.pictureInPictureEnabled) {
-            alert("เบราว์เซอร์ของคุณไม่รองรับระบบ Picture-in-Picture (เฉพาะบางเบราว์เซอร์เช่น Chrome/Edge)");
+            alert("เบราว์เซอร์ของคุณไม่รองรับระบบ Picture-in-Picture");
             return;
         }
         try {
