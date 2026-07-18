@@ -1,104 +1,169 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TikTalk AI Reader</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#181c24">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').then(registration => {
-                    console.log('SW registered:', registration);
-                }).catch(error => {
-                    console.log('SW registration failed:', error);
-                });
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
             });
         }
     </script>
-    <div class="background-blobs">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-    </div>
     
-    <div class="container">
-        <header class="header glass-panel">
-            <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                    <line x1="12" y1="19" x2="12" y2="22"></line>
-                </svg>
-                <h1>TikTalk <span>Reader</span></h1>
+    <!-- Top Header -->
+    <header class="top-header">
+        <div class="logo-circ">Tik</div>
+        <div class="title">แกลเลอรี่เสียง TTS</div>
+        <div class="coins">🪙 100k</div>
+    </header>
+
+    <main class="app-content">
+        <!-- TAB 1: บ้าน (Home) -->
+        <section id="tab-home" class="tab-pane active">
+            <div class="home-hero">
+                <div class="radar-circle">
+                    <div class="radar-pulse"></div>
+                    <div class="radar-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="22"></line>
+                        </svg>
+                    </div>
+                </div>
+                <h2>รอคุณอยู่ TikTok live</h2>
+                
+                <div class="home-steps">
+                    <div class="step-item">
+                        <div class="step-num">1</div>
+                        <div class="step-text">
+                            <h3>เริ่มการถ่ายทอดสด TikTok ของคุณ</h3>
+                            <p>กรอกไอดีช่อง TikTok ของคุณด้านล่างเพื่อเชื่อมต่อ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="connect-box">
+                    <input type="text" id="username-input" placeholder="@username" autocomplete="off">
+                    <button id="connect-btn" class="btn primary">เชื่อมต่อ (Connect)</button>
+                </div>
+                <div id="status-badge" class="status-msg">Disconnected</div>
             </div>
-            <div id="status-badge" class="status-badge disconnected">Disconnected</div>
-        </header>
 
-        <main class="main-content">
-            <!-- Connection Panel -->
-            <section class="glass-panel connect-panel">
-                <p class="description">AI-powered Text-to-Speech for your TikTok LIVE comments and gifts.</p>
-                <div class="input-group">
-                    <input type="text" id="username-input" placeholder="TikTok Username (e.g. @username)" autocomplete="off">
-                    <button id="connect-btn" class="btn primary">Connect</button>
-                </div>
-            </section>
+            <div class="activity-box">
+                <div class="box-header">Live Activity <span id="queue-count">0 คิว</span></div>
+                <div id="activity-log" class="activity-log"></div>
+            </div>
+        </section>
 
-            <!-- Reader Settings Panel -->
-            <section class="glass-panel settings-panel">
-                <div class="setting-item">
-                    <label for="voice-select">Voice</label>
-                    <select id="voice-select"></select>
-                </div>
-                <div class="setting-item">
-                    <label for="speed-slider">Speed (<span id="speed-value">1.0</span>x)</label>
-                    <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="1.0">
-                </div>
-            </section>
-            
-            <section class="glass-panel toggles-panel">
-                <div class="toggle-group">
-                    <label class="toggle-switch">
+        <!-- TAB 2: การแจ้งเตือน (Alerts) -->
+        <section id="tab-alerts" class="tab-pane">
+            <div class="search-bar">
+                <input type="text" placeholder="🔍 ค้นหา ...">
+            </div>
+
+            <div class="settings-card">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="icon">📢</span>
+                        <span>การแจ้งเตือนเสียง (คอมเมนต์)</span>
+                    </div>
+                    <label class="ios-switch">
                         <input type="checkbox" id="toggle-comments" checked>
                         <span class="slider"></span>
                     </label>
-                    <span>อ่านคอมเมนต์</span>
                 </div>
-                <div class="toggle-group">
-                    <label class="toggle-switch">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="icon">🎁</span>
+                        <span>ของขวัญใด ๆ</span>
+                    </div>
+                    <label class="ios-switch">
                         <input type="checkbox" id="toggle-gifts" checked>
                         <span class="slider"></span>
                     </label>
-                    <span>อ่านของขวัญ</span>
                 </div>
-                <div class="toggle-group">
-                    <label class="toggle-switch">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="icon">👤</span>
+                        <span>ติดตาม</span>
+                    </div>
+                    <label class="ios-switch">
                         <input type="checkbox" id="toggle-follows" checked>
                         <span class="slider"></span>
                     </label>
-                    <span>อ่านคนติดตาม</span>
                 </div>
-            </section>
+                <div class="add-new-btn">+ เพิ่มการแจ้งเตือนเสียงใหม่</div>
+            </div>
+        </section>
 
-            <!-- Activity Log -->
-            <section class="glass-panel activity-panel">
-                <div class="panel-header">
-                    <h2>Live Activity</h2>
-                    <span id="queue-count" class="queue-badge">0 in queue</span>
+        <!-- TAB 3: ทีทีเอส (TTS) -->
+        <section id="tab-tts" class="tab-pane">
+            <div class="tts-tabs">
+                <button class="tts-tab active" data-tts="comment">ข้อความคอมเมนต์</button>
+                <button class="tts-tab" data-tts="gift">ข้อความของขวัญ</button>
+            </div>
+
+            <div class="settings-card">
+                <h4 class="card-title">การตั้งค่าเสียง</h4>
+                <div class="voice-select-wrapper">
+                    <select id="voice-select"></select>
                 </div>
-                <div id="activity-log" class="activity-log">
-                    <div class="empty-state">
-                        Waiting for events...
-                    </div>
+                
+                <div class="slider-row">
+                    <label>ความเร็วเริ่มต้น</label>
+                    <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="1.0">
+                    <span class="val-display" id="speed-value">1.0</span>
                 </div>
-            </section>
-        </main>
-    </div>
+                <div class="slider-row">
+                    <label>ระดับเสียงเริ่มต้น</label>
+                    <input type="range" id="pitch-slider" min="0" max="2" step="0.1" value="1.0">
+                    <span class="val-display" id="pitch-value">1.0</span>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h4 class="card-title">เทมเพลตข้อความ</h4>
+                <p class="desc">ใช้ {nickName}, {comment}, {giftName}, {giftCount}</p>
+                
+                <!-- Comment Template -->
+                <div class="template-box" id="template-box-comment">
+                    <textarea id="template-comment" rows="2">{nickName} พูดว่า {comment}</textarea>
+                </div>
+                
+                <!-- Gift Template -->
+                <div class="template-box" id="template-box-gift" style="display:none;">
+                    <textarea id="template-gift" rows="2">ขอบคุณ {nickName} สำหรับ {giftName} {giftCount} ชิ้น</textarea>
+                </div>
+
+                <div class="reset-btn" id="reset-template">↺ รีเซ็ตเทมเพลต TTS</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-target="tab-home">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>บ้าน</span>
+        </button>
+        <button class="nav-item" data-target="tab-alerts">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+            <span>การแจ้งเตือน</span>
+        </button>
+        <button class="nav-item" data-target="tab-tts">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+            <span>ทีทีเอส</span>
+        </button>
+    </nav>
 
     <script src="/static/app.js"></script>
 </body>
