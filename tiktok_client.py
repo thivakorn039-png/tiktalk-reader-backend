@@ -13,7 +13,16 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
             @client.on(ConnectEvent)
             async def on_connect(event: ConnectEvent):
                 try:
-                    await websocket.send_json({"type": "status", "status": "connected"})
+                    avatar_url = None
+                    try:
+                        if hasattr(client, 'room_info') and client.room_info:
+                            owner = client.room_info.get("owner", {})
+                            url_list = owner.get("avatar_thumb", {}).get("url_list", [])
+                            if url_list:
+                                avatar_url = url_list[0]
+                    except Exception:
+                        pass
+                    await websocket.send_json({"type": "status", "status": "connected", "avatarUrl": avatar_url})
                 except:
                     pass
                 

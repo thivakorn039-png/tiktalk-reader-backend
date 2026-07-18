@@ -1,7 +1,20 @@
 const DOM = {
-    usernameInput: document.getElementById('username-input'),
-    connectBtn: document.getElementById('connect-btn'),
-    statusBadge: document.getElementById('status-badge'),
+    // Setup Modal
+    setupModal: document.getElementById('setup-modal'),
+    setupUsername: document.getElementById('setup-username'),
+    setupSaveBtn: document.getElementById('setup-save-btn'),
+    
+    // Header
+    profileAvatar: document.getElementById('profile-avatar'),
+
+    // Home / Connection
+    startBtn: document.getElementById('start-btn'),
+    connectionOverlay: document.getElementById('connection-overlay'),
+    exitConnectionBtn: document.getElementById('exit-connection-btn'),
+    overlayStatusText: document.getElementById('overlay-status-text'),
+    overlayStatusDesc: document.getElementById('overlay-status-desc'),
+    
+    // Logs
     activityLog: document.getElementById('activity-log'),
     queueCount: document.getElementById('queue-count'),
     
@@ -9,7 +22,9 @@ const DOM = {
     navItems: document.querySelectorAll('.nav-item'),
     tabPanes: document.querySelectorAll('.tab-pane'),
     
-    // Toggles
+    // Toggles (Alerts & TTS)
+    homeToggleAlerts: document.getElementById('home-toggle-alerts'),
+    homeToggleTts: document.getElementById('home-toggle-tts'),
     toggleComments: document.getElementById('toggle-comments'),
     toggleGifts: document.getElementById('toggle-gifts'),
     toggleFollows: document.getElementById('toggle-follows'),
@@ -36,10 +51,44 @@ let voices = [];
 let ttsQueue = [];
 let isSpeaking = false;
 let recentMessages = new Set();
+let tiktokUsername = localStorage.getItem('tiktok_username') || '';
+let tiktokAvatar = localStorage.getItem('tiktok_avatar') || '';
 
 // Default Templates
 const DEFAULT_COMMENT = "{nickName} พูดว่า {comment}";
 const DEFAULT_GIFT = "ขอบคุณ {nickName} สำหรับ {giftName} {giftCount} ชิ้น";
+
+// Check first time setup
+function initSetup() {
+    if (!tiktokUsername) {
+        DOM.setupModal.classList.remove('hidden');
+    } else {
+        DOM.setupModal.classList.add('hidden');
+        updateProfileAvatar();
+    }
+}
+initSetup();
+
+function updateProfileAvatar() {
+    if (tiktokAvatar) {
+        DOM.profileAvatar.style.backgroundImage = `url(${tiktokAvatar})`;
+        DOM.profileAvatar.textContent = '';
+    } else if (tiktokUsername) {
+        DOM.profileAvatar.textContent = tiktokUsername.charAt(0).toUpperCase();
+        DOM.profileAvatar.style.backgroundImage = 'none';
+    }
+}
+
+DOM.setupSaveBtn.addEventListener('click', () => {
+    let name = DOM.setupUsername.value.trim();
+    if (!name) return alert('กรุณากรอกชื่อ TikTok');
+    if (name.startsWith('@')) name = name.substring(1);
+    
+    tiktokUsername = name;
+    localStorage.setItem('tiktok_username', name);
+    DOM.setupModal.classList.add('hidden');
+    updateProfileAvatar();
+});
 
 // Load Settings
 function loadSettings() {
@@ -77,6 +126,13 @@ DOM.resetTemplateBtn.addEventListener('click', () => {
     localStorage.setItem('tpl_gift', DEFAULT_GIFT);
 });
 
+// Sync Home Toggles
+DOM.homeToggleAlerts.addEventListener('change', (e) => {
+    DOM.toggleComments.checked = e.target.checked;
+    DOM.toggleGifts.checked = e.target.checked;
+    DOM.toggleFollows.checked = e.target.checked;
+});
+
 // Tab Navigation Logic
 DOM.navItems.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -111,7 +167,7 @@ function populateVoiceList() {
     DOM.voiceSelect.innerHTML = '';
     
     const cloudOption = document.createElement('option');
-    cloudOption.textContent = "🎙️ เสียง TikTok/Siri (Cloud TTS) - แนะนำ!";
+    cloudOption.textContent = "🎙️ เสียง TikTok (Cloud TTS) - แนะนำ";
     cloudOption.value = "cloud";
     DOM.voiceSelect.appendChild(cloudOption);
 
@@ -150,17 +206,11 @@ function addLog(type, user, content) {
 function updateStatus(connected, message = null) {
     isConnected = connected;
     if (connected) {
-        DOM.statusBadge.textContent = 'เชื่อมต่อแล้ว (Connected)';
-        DOM.statusBadge.style.color = '#10b981';
-        DOM.connectBtn.textContent = 'ตัดการเชื่อมต่อ (Disconnect)';
-        DOM.connectBtn.style.background = '#374151';
-        DOM.usernameInput.disabled = true;
+        DOM.overlayStatusText.textContent = `กำลังเชื่อมต่อกับ @${tiktokUsername}`;
+        DOM.overlayStatusDesc.textContent = 'เชื่อมต่อสำเร็จ รอรับข้อมูล...';
     } else {
-        DOM.statusBadge.textContent = message || 'ตัดการเชื่อมต่อแล้ว (Disconnected)';
-        DOM.statusBadge.style.color = '#ef4444';
-        DOM.connectBtn.textContent = 'เชื่อมต่อ (Connect)';
-        DOM.connectBtn.style.background = '#e11d48';
-        DOM.usernameInput.disabled = false;
+        DOM.overlayStatusText.textContent = message || 'ตัดการเชื่อมต่อแล้ว';
+        DOM.overlayStatusDesc.textContent = 'กรุณาเริ่มใหม่';
     }
 }
 
@@ -184,6 +234,13 @@ function speakNext() {
         isSpeaking = false;
         return;
     }
+    if (!DOM.homeToggleTts.checked) {
+        // If TTS is disabled entirely, just clear the item
+        ttsQueue.shift();
+        updateQueueCount();
+        speakNext();
+        return;
+    }
     
     isSpeaking = true;
     ttsQueue.sort((a, b) => b.priority - a.priority);
@@ -198,7 +255,6 @@ function speakNext() {
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(nextItem.text)}&tl=th&client=tw-ob`;
         const audio = new Audio(url);
         audio.playbackRate = speed;
-        // Pitch is not natively supported by Audio element easily, ignored for Cloud TTS
         audio.onended = () => { speakNext(); };
         audio.onerror = (e) => { speakNext(); };
         audio.play().catch(e => { speakNext(); });
@@ -226,22 +282,22 @@ function addToQueue(text, priority) {
 
 // WebSocket Logic
 function connectWS() {
-    let username = DOM.usernameInput.value.trim();
-    if (!username) {
-        alert('กรุณากรอกไอดี TikTok');
+    if (!tiktokUsername) {
+        initSetup();
         return;
     }
-    if (username.startsWith('@')) username = username.substring(1);
+
+    DOM.connectionOverlay.classList.add('active');
+    DOM.overlayStatusText.textContent = `กำลังเชื่อมต่อกับ @${tiktokUsername}...`;
+    DOM.overlayStatusDesc.textContent = 'ระบบกำลังพยายามเข้าถึงห้อง Live';
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     
     ws = new WebSocket(wsUrl);
-    updateStatus(false, 'กำลังเชื่อมต่อ (Connecting...)');
-    DOM.statusBadge.style.color = '#facc15';
 
     ws.onopen = () => {
-        ws.send(JSON.stringify({ action: 'connect', username: username }));
+        ws.send(JSON.stringify({ action: 'connect', username: tiktokUsername }));
     };
 
     ws.onmessage = (event) => {
@@ -251,7 +307,13 @@ function connectWS() {
             if (data.type === 'status') {
                 if (data.status === 'connected') {
                     updateStatus(true);
-                    addLog('system', null, `เชื่อมต่อสำเร็จ: @${username}`);
+                    addLog('system', null, `เชื่อมต่อสำเร็จ: @${tiktokUsername}`);
+                    // Save avatar if available
+                    if (data.avatarUrl) {
+                        tiktokAvatar = data.avatarUrl;
+                        localStorage.setItem('tiktok_avatar', tiktokAvatar);
+                        updateProfileAvatar();
+                    }
                 } else if (data.status === 'disconnected' || data.status === 'error') {
                     updateStatus(false, data.message || 'Disconnected');
                     addLog('system', null, data.message || 'หลุดการเชื่อมต่อ');
@@ -315,20 +377,15 @@ function disconnectWS() {
         ws.send(JSON.stringify({ action: 'disconnect' }));
         ws.close();
     }
+    DOM.connectionOverlay.classList.remove('active');
 }
 
 // Events
-DOM.connectBtn.addEventListener('click', () => {
-    if (isConnected) {
-        disconnectWS();
-    } else {
-        synth.cancel(); 
-        connectWS();
-    }
+DOM.startBtn.addEventListener('click', () => {
+    synth.cancel(); 
+    connectWS();
 });
 
-DOM.usernameInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !isConnected) {
-        connectWS();
-    }
+DOM.exitConnectionBtn.addEventListener('click', () => {
+    disconnectWS();
 });

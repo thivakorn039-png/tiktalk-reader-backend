@@ -17,10 +17,49 @@
             });
         }
     </script>
+
+    <!-- First-time Setup Modal -->
+    <div id="setup-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>ยินดีต้อนรับสู่ TikTalk</h2>
+            <p>กรุณากรอกไอดี TikTok ของคุณเพื่อเริ่มต้นใช้งาน (ใส่แค่ชื่อ ไม่ต้องใส่ @)</p>
+            <input type="text" id="setup-username" placeholder="tiktok_username" autocomplete="off">
+            <button id="setup-save-btn" class="btn primary">บันทึก</button>
+        </div>
+    </div>
+
+    <!-- Connection Overlay (Radar & Log) -->
+    <div id="connection-overlay" class="connection-overlay">
+        <div class="connection-header">
+            <div class="radar-circle">
+                <div class="radar-pulse"></div>
+                <div class="radar-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="22"></line>
+                    </svg>
+                </div>
+            </div>
+            <h2 id="overlay-status-text">รอคุณอยู่ TikTok live</h2>
+            <p id="overlay-status-desc">เริ่มการถ่ายทอดสด TikTok ของคุณ</p>
+        </div>
+
+        <div class="overlay-body">
+            <div class="activity-box">
+                <div class="box-header">Live Activity <span id="queue-count">0 คิว</span></div>
+                <div id="activity-log" class="activity-log"></div>
+            </div>
+        </div>
+
+        <div class="overlay-footer">
+            <button id="exit-connection-btn" class="btn text-btn">โหมดออก</button>
+        </div>
+    </div>
     
     <!-- Top Header -->
     <header class="top-header">
-        <div class="logo-circ">Tik</div>
+        <div class="logo-circ" id="profile-avatar">T</div>
         <div class="title">แกลเลอรี่เสียง TTS</div>
         <div class="coins">🪙 100k</div>
     </header>
@@ -28,40 +67,54 @@
     <main class="app-content">
         <!-- TAB 1: บ้าน (Home) -->
         <section id="tab-home" class="tab-pane active">
-            <div class="home-hero">
-                <div class="radar-circle">
-                    <div class="radar-pulse"></div>
-                    <div class="radar-icon">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                            <line x1="12" y1="19" x2="12" y2="22"></line>
-                        </svg>
-                    </div>
-                </div>
-                <h2>รอคุณอยู่ TikTok live</h2>
-                
-                <div class="home-steps">
-                    <div class="step-item">
-                        <div class="step-num">1</div>
-                        <div class="step-text">
-                            <h3>เริ่มการถ่ายทอดสด TikTok ของคุณ</h3>
-                            <p>กรอกไอดีช่อง TikTok ของคุณด้านล่างเพื่อเชื่อมต่อ</p>
+            
+            <div class="home-cards">
+                <!-- Card 1 -->
+                <div class="home-card">
+                    <div class="card-header">
+                        <div class="card-title-row">
+                            <div class="icon-circ">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                            </div>
+                            <h3>การแจ้งเตือนด้วยเสียง</h3>
                         </div>
+                        <label class="ios-switch">
+                            <input type="checkbox" id="home-toggle-alerts" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="card-desc">การแจ้งเตือนเสียงเป็นเสียงตลกๆ ที่จะปรากฏขึ้นเมื่อมีเหตุการณ์ TikTok เกิดขึ้น เช่น "ผู้ติดตามใหม่" หรือ "ส่งของขวัญ"</p>
+                    <div class="card-footer" onclick="document.querySelector('[data-target=\'tab-alerts\']').click()">
+                        แก้ไขการแจ้งเตือนเสียง &rarr;
                     </div>
                 </div>
 
-                <div class="connect-box">
-                    <input type="text" id="username-input" placeholder="@username" autocomplete="off">
-                    <button id="connect-btn" class="btn primary">เชื่อมต่อ (Connect)</button>
+                <!-- Card 2 -->
+                <div class="home-card">
+                    <div class="card-header">
+                        <div class="card-title-row">
+                            <div class="icon-circ">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                            </div>
+                            <h3>การแปลงข้อความเป็นคำพูด</h3>
+                        </div>
+                        <label class="ios-switch">
+                            <input type="checkbox" id="home-toggle-tts" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="card-desc">Text-To-Speech ให้เสียง AI อ่านข้อความที่ผู้ชมของคุณเขียนออกมา</p>
+                    <div class="card-footer" onclick="document.querySelector('[data-target=\'tab-tts\']').click()">
+                        แก้ไขข้อความเป็นคำพูด &rarr;
+                    </div>
                 </div>
-                <div id="status-badge" class="status-msg">Disconnected</div>
             </div>
 
-            <div class="activity-box">
-                <div class="box-header">Live Activity <span id="queue-count">0 คิว</span></div>
-                <div id="activity-log" class="activity-log"></div>
-            </div>
+            <!-- Big Start Button -->
+            <button id="start-btn" class="btn big-red-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                เริ่มการแจ้งเตือนเสียงและการแปลงข้อความเป็นคำพูด
+            </button>
         </section>
 
         <!-- TAB 2: การแจ้งเตือน (Alerts) -->
@@ -73,8 +126,7 @@
             <div class="settings-card">
                 <div class="setting-row">
                     <div class="setting-info">
-                        <span class="icon">📢</span>
-                        <span>การแจ้งเตือนเสียง (คอมเมนต์)</span>
+                        <span>การแจ้งเตือนเสียงคิว (ตามเหตุการณ์)</span>
                     </div>
                     <label class="ios-switch">
                         <input type="checkbox" id="toggle-comments" checked>
@@ -83,8 +135,8 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <span class="icon">🎁</span>
-                        <span>ของขวัญใด ๆ</span>
+                        <span class="icon" style="color: #3b82f6;">🎁</span>
+                        <span>ของขวัญใด ๆ ></span>
                     </div>
                     <label class="ios-switch">
                         <input type="checkbox" id="toggle-gifts" checked>
@@ -93,8 +145,8 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <span class="icon">👤</span>
-                        <span>ติดตาม</span>
+                        <span class="icon" style="color: #3b82f6;">👤</span>
+                        <span>ติดตาม ></span>
                     </div>
                     <label class="ios-switch">
                         <input type="checkbox" id="toggle-follows" checked>
@@ -108,8 +160,8 @@
         <!-- TAB 3: ทีทีเอส (TTS) -->
         <section id="tab-tts" class="tab-pane">
             <div class="tts-tabs">
-                <button class="tts-tab active" data-tts="comment">ข้อความคอมเมนต์</button>
-                <button class="tts-tab" data-tts="gift">ข้อความของขวัญ</button>
+                <button class="tts-tab active" data-tts="comment">การสนทนาข้อความเป็นคำพูด</button>
+                <button class="tts-tab" data-tts="gift">ข้อความเป้นของขวัญคำพูด</button>
             </div>
 
             <div class="settings-card">
@@ -127,6 +179,11 @@
                     <label>ระดับเสียงเริ่มต้น</label>
                     <input type="range" id="pitch-slider" min="0" max="2" step="0.1" value="1.0">
                     <span class="val-display" id="pitch-value">1.0</span>
+                </div>
+                <div class="slider-row" style="opacity: 0.5;">
+                    <label>ปริมาณ (Volume)</label>
+                    <input type="range" min="0" max="1" step="0.1" value="1.0" disabled>
+                    <span class="val-display">1.0</span>
                 </div>
             </div>
 
