@@ -15,10 +15,11 @@ let synth = window.speechSynthesis;
 let voices = [];
 let ttsQueue = [];
 let isSpeaking = false;
+let recentMessages = new Set();
 
 // Initialize Voices
 function populateVoiceList() {
-    voices = synth.getVoices().filter(voice => voice.lang.includes('th') || voice.lang.includes('en'));
+    voices = synth.getVoices();
     
     // Sort Thai voices first
     voices.sort((a, b) => {
@@ -163,21 +164,36 @@ function connectWS() {
                 if (data.status === 'connected') {
                     updateStatus(true);
                     addLog('system', null, `Connected to LIVE: @${username}`);
-                    addToQueue("เชื่อมต่อกับไลฟ์สำเร็จแล้ว", 3);
+                    // Removed TTS for connection success
                 } else if (data.status === 'disconnected' || data.status === 'error') {
                     updateStatus(false, 'Disconnected');
                     addLog('system', null, data.message || 'Disconnected from LIVE');
                 }
             } 
             else if (data.type === 'comment') {
+                const msgKey = `comment:${data.user}:${data.message}`;
+                if (recentMessages.has(msgKey)) return;
+                recentMessages.add(msgKey);
+                if (recentMessages.size > 200) {
+                    recentMessages.delete(recentMessages.values().next().value);
+                }
+                
                 addLog('comment', data.user, data.message);
                 addToQueue(`${data.user} พิมพ์ว่า ${data.message}`, 0);
             }
             else if (data.type === 'gift') {
+                const msgKey = `gift:${data.user}:${data.gift}:${data.count}`;
+                if (recentMessages.has(msgKey)) return;
+                recentMessages.add(msgKey);
+                
                 addLog('gift', data.user, `ส่ง ${data.gift} x${data.count}`);
                 addToQueue(`ขอบคุณ ${data.user} สำหรับ ${data.gift} ${data.count} ชิ้นครับ`, 2);
             }
             else if (data.type === 'follow') {
+                const msgKey = `follow:${data.user}`;
+                if (recentMessages.has(msgKey)) return;
+                recentMessages.add(msgKey);
+                
                 addLog('follow', data.user, 'เริ่มติดตามคุณ!');
                 addToQueue(`ขอบคุณ ${data.user} ที่กดติดตามครับ`, 1);
             }
