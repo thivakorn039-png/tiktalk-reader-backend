@@ -174,11 +174,11 @@ function connectWS() {
                 addToQueue(`${data.user} พิมพ์ว่า ${data.message}`, 0);
             }
             else if (data.type === 'gift') {
-                addLog('gift', data.user, `Sent ${data.gift} x${data.count}`);
+                addLog('gift', data.user, `ส่ง ${data.gift} x${data.count}`);
                 addToQueue(`ขอบคุณ ${data.user} สำหรับ ${data.gift} ${data.count} ชิ้นครับ`, 2);
             }
             else if (data.type === 'follow') {
-                addLog('follow', data.user, 'Started following!');
+                addLog('follow', data.user, 'เริ่มติดตามคุณ!');
                 addToQueue(`ขอบคุณ ${data.user} ที่กดติดตามครับ`, 1);
             }
         } catch (e) {
