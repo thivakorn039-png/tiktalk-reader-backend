@@ -314,14 +314,18 @@ DOM.setupSaveBtn.addEventListener('click', async () => {
     DOM.setupModal.classList.add('hidden');
     updateProfileAvatar(); // Set initial letter instantly
 
-    // Fetch avatar from backend API
+    // Fetch avatar from tikwm API directly (avoids backend IP block)
     try {
-        const res = await fetch(`/api/avatar/${encodeURIComponent(name)}`);
+        const res = await fetch(`https://www.tikwm.com/api/user/info?unique_id=${encodeURIComponent(name)}`);
         const json = await res.json();
-        if (json.avatarUrl) {
-            tiktokAvatar = json.avatarUrl;
-            localStorage.setItem('tiktok_avatar', tiktokAvatar);
-            updateProfileAvatar(); // Update with actual image
+        if (json.code === 0 && json.data && json.data.user) {
+            const user = json.data.user;
+            const avatar = user.avatarMedium || user.avatarLarger || user.avatarThumb;
+            if (avatar) {
+                tiktokAvatar = avatar;
+                localStorage.setItem('tiktok_avatar', tiktokAvatar);
+                updateProfileAvatar(); // Update with actual image
+            }
         }
     } catch (e) {
         console.error("Failed to fetch avatar", e);
