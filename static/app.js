@@ -252,12 +252,21 @@ function speakNext() {
     const pitch = parseFloat(DOM.pitchSlider ? DOM.pitchSlider.value : 1.0);
 
     if (selectedVoiceIndex === 'cloud') {
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(nextItem.text)}&tl=th&client=tw-ob`;
+        const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(nextItem.text)}&tl=th&client=gtx`;
         const audio = new Audio(url);
         audio.playbackRate = speed;
-        audio.onended = () => { speakNext(); };
-        audio.onerror = (e) => { speakNext(); };
-        audio.play().catch(e => { speakNext(); });
+        
+        let hasProceeded = false;
+        const proceed = () => {
+            if (!hasProceeded) {
+                hasProceeded = true;
+                speakNext();
+            }
+        };
+
+        audio.onended = proceed;
+        audio.onerror = proceed;
+        audio.play().catch(e => { proceed(); });
     } else {
         const utterance = new SpeechSynthesisUtterance(nextItem.text);
         if (voices[selectedVoiceIndex]) {
@@ -382,7 +391,18 @@ function disconnectWS() {
 
 // Events
 DOM.startBtn.addEventListener('click', () => {
+    // Unlock SpeechSynthesis
     synth.cancel(); 
+    const unlockUtterance = new SpeechSynthesisUtterance('');
+    unlockUtterance.volume = 0;
+    synth.speak(unlockUtterance);
+    
+    // Unlock HTML5 Audio (Cloud TTS)
+    const unlockAudio = new Audio();
+    unlockAudio.volume = 0;
+    unlockAudio.src = 'data:audio/mp3;base64,//MkxAAQ...'; // dummy valid-ish audio
+    unlockAudio.play().catch(e => {});
+
     connectWS();
 });
 
