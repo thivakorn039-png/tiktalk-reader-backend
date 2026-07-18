@@ -137,15 +137,22 @@ class PiPManager {
             if (document.pictureInPictureElement) {
                 await document.exitPictureInPicture();
             } else {
+                if (this.video.readyState === 0) {
+                    await new Promise(resolve => {
+                        this.video.onloadedmetadata = resolve;
+                        setTimeout(resolve, 500);
+                    });
+                }
                 await this.video.requestPictureInPicture();
             }
         } catch (error) {
             console.error("PiP Error:", error);
-            alert("เกิดข้อผิดพลาดในการเปิด Picture-in-Picture");
+            alert("เกิดข้อผิดพลาดในการเปิด Picture-in-Picture: " + error.message);
         }
     }
 }
-let pipManager = null;
+let pipManager = new PiPManager();
+pipManager.startLoop();
 
 // Default Templates
 const DEFAULT_COMMENT = "{nickName} พูดว่า {comment}";
@@ -565,10 +572,6 @@ DOM.exitConnectionBtn.addEventListener('click', () => {
 });
 
 DOM.btnPip.addEventListener('click', () => {
-    if (!pipManager) {
-        pipManager = new PiPManager();
-        pipManager.startLoop();
-    }
     pipManager.togglePiP();
 });
 
