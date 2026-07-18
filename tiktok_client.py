@@ -54,8 +54,14 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
         except Exception as e:
             print(f"Error connecting to TikTok: {e}")
             traceback.print_exc()
+            err_name = type(e).__name__
             try:
-                await websocket.send_json({"type": "status", "status": "error", "message": f"{type(e).__name__}: {str(e)}"})
+                await websocket.send_json({"type": "status", "status": "error", "message": f"{err_name}: {str(e)}"})
             except:
                 break
+            
+            # Break loop on fatal errors to prevent rate limits
+            if err_name in ["FailedFetchRoomInfoError", "SignatureRateLimitError"]:
+                break
+                
             await asyncio.sleep(5) # Reconnect delay
