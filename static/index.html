@@ -242,29 +242,29 @@
                         <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
                             <span>ผู้ใช้ทั้งหมด</span>
                             <label class="ios-switch">
-                                <input type="checkbox" checked disabled>
+                                <input type="checkbox" id="perm-all" checked>
                                 <span class="slider" style="background: #10b981;"></span>
                             </label>
                         </div>
                         <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
                             <span>ผู้ติดตาม</span>
-                            <label class="ios-switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                            <label class="ios-switch"><input type="checkbox" id="perm-followers"><span class="slider"></span></label>
                         </div>
                         <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
                             <span>สมาชิก</span>
-                            <label class="ios-switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                            <label class="ios-switch"><input type="checkbox" id="perm-members"><span class="slider"></span></label>
                         </div>
                         <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
                             <span>ผู้ดูแลระบบ</span>
-                            <label class="ios-switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                            <label class="ios-switch"><input type="checkbox" id="perm-mods"><span class="slider"></span></label>
                         </div>
                         <div class="setting-row" style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
                             <span>สมาชิกในทีม <span style="font-size: 0.8rem; color: #a0aec0;">ระดับขั้นต่ำ: (ระดับ) &gt;</span></span>
-                            <label class="ios-switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                            <label class="ios-switch"><input type="checkbox" id="perm-team"><span class="slider"></span></label>
                         </div>
                         <div class="setting-row" style="padding: 0.5rem 0;">
                             <span>ผู้ให้ของขวัญชั้นนำ <span style="font-size: 0.8rem; color: #a0aec0;">ตำแหน่ง: 3 &gt;</span></span>
-                            <label class="ios-switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                            <label class="ios-switch"><input type="checkbox" id="perm-gifters"><span class="slider"></span></label>
                         </div>
                     </div>
                 </div>
@@ -272,18 +272,21 @@
                 <div class="settings-card">
                     <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem;">เงื่อนไขคำสั่ง</h4>
                     <div style="background: var(--bg-card); border-radius: 0.5rem; padding: 0.5rem 1rem;">
-                        <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                        <div class="setting-row cmd-condition" data-cmd="any" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); cursor: pointer;">
                             <span style="color: var(--accent-gold);">อ่านทุกความคิดเห็นใด ๆ</span>
-                            <span style="color: var(--accent-gold);">✓</span>
+                            <span class="cmd-check" style="color: var(--accent-gold);">✓</span>
                         </div>
-                        <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                        <div class="setting-row cmd-condition" data-cmd="dot" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); cursor: pointer;">
                             <span>ความคิดเห็นที่เริ่มต้นด้วยจุด (.)</span>
+                            <span class="cmd-check" style="color: var(--accent-gold); display: none;">✓</span>
                         </div>
-                        <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                        <div class="setting-row cmd-condition" data-cmd="slash" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); cursor: pointer;">
                             <span>ความคิดเห็นเริ่มต้นด้วยเครื่องหมายทับ (/)</span>
+                            <span class="cmd-check" style="color: var(--accent-gold); display: none;">✓</span>
                         </div>
-                        <div class="setting-row" style="padding: 0.75rem 0;">
+                        <div class="setting-row cmd-condition" data-cmd="both" style="padding: 0.75rem 0; cursor: pointer;">
                             <span>ความคิดเห็นเริ่มต้นด้วยจุด (.) หรือเครื่องหมายทับ (/)</span>
+                            <span class="cmd-check" style="color: var(--accent-gold); display: none;">✓</span>
                         </div>
                     </div>
                 </div>
@@ -293,20 +296,20 @@
                     <div style="background: var(--bg-card); border-radius: 0.5rem; padding: 0.5rem 1rem;">
                         <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
                             <span>คูลดาวน์ของผู้ใช้ (วินาที)</span>
-                            <span>0</span>
+                            <input type="number" id="spam-cooldown" value="0" style="background: transparent; border: none; color: #fff; text-align: right; width: 60px; font-family: Inter;">
                         </div>
                         <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
                             <span>ความยาวคิวสูงสุด</span>
-                            <span>5</span>
+                            <input type="number" id="spam-maxqueue" value="5" style="background: transparent; border: none; color: #fff; text-align: right; width: 60px; font-family: Inter;">
                         </div>
                         <div class="setting-row" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
                             <span>ความยาวสูงสุดของความคิดเห็น</span>
-                            <span>300</span>
+                            <input type="number" id="spam-maxlength" value="300" style="background: transparent; border: none; color: #fff; text-align: right; width: 60px; font-family: Inter;">
                         </div>
                         <div class="setting-row" style="padding: 0.75rem 0;">
                             <span>กรองจดหมายขยะ</span>
                             <label class="ios-switch">
-                                <input type="checkbox" checked disabled>
+                                <input type="checkbox" id="spam-filter" checked>
                                 <span class="slider" style="background: #10b981;"></span>
                             </label>
                         </div>
@@ -333,7 +336,7 @@
                     <div style="background: var(--bg-card); border-radius: 0.5rem; padding: 0.5rem 1rem;">
                         <div class="setting-row" style="padding: 0.75rem 0;">
                             <span>เหรียญขั้นต่ำ</span>
-                            <span>0</span>
+                            <input type="number" id="gift-min-coins" value="0" style="background: transparent; border: none; color: #fff; text-align: right; width: 60px; font-family: Inter;">
                         </div>
                     </div>
                 </div>

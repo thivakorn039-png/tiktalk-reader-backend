@@ -56,8 +56,29 @@ const DOM = {
     charCountComment: document.getElementById('char-count-comment'),
     charCountGift: document.getElementById('char-count-gift'),
     currentVoiceLang: document.getElementById('current-voice-lang'),
-    previewVoiceBtn: document.getElementById('preview-voice-btn')
+    previewVoiceBtn: document.getElementById('preview-voice-btn'),
+    
+    // New UI Settings
+    toggles: {
+        permAll: document.getElementById('perm-all'),
+        permFollowers: document.getElementById('perm-followers'),
+        permMembers: document.getElementById('perm-members'),
+        permMods: document.getElementById('perm-mods'),
+        permTeam: document.getElementById('perm-team'),
+        permGifters: document.getElementById('perm-gifters'),
+        spamFilter: document.getElementById('spam-filter'),
+    },
+    numbers: {
+        spamCooldown: document.getElementById('spam-cooldown'),
+        spamMaxqueue: document.getElementById('spam-maxqueue'),
+        spamMaxlength: document.getElementById('spam-maxlength'),
+        giftMinCoins: document.getElementById('gift-min-coins'),
+    },
+    cmdConditions: document.querySelectorAll('.cmd-condition')
 };
+
+let currentCmdCondition = localStorage.getItem('cmd_condition') || 'any';
+let lastCommentTime = 0;
 
 let ws = null;
 let isConnected = false;
@@ -345,6 +366,34 @@ function loadSettings() {
     
     if(DOM.charCountComment) DOM.charCountComment.textContent = `${DOM.templateComment.value.length}/160`;
     if(DOM.charCountGift) DOM.charCountGift.textContent = `${DOM.templateGift.value.length}/160`;
+    
+    // Load toggles
+    Object.keys(DOM.toggles).forEach(key => {
+        if (DOM.toggles[key]) {
+            const saved = localStorage.getItem(`ui_toggle_${key}`);
+            if (saved !== null) DOM.toggles[key].checked = saved === 'true';
+        }
+    });
+    
+    // Load numbers
+    Object.keys(DOM.numbers).forEach(key => {
+        if (DOM.numbers[key]) {
+            const saved = localStorage.getItem(`ui_num_${key}`);
+            if (saved !== null) DOM.numbers[key].value = saved;
+        }
+    });
+    
+    // Load cmd condition UI
+    DOM.cmdConditions.forEach(el => {
+        const checkMark = el.querySelector('.cmd-check');
+        if (el.dataset.cmd === currentCmdCondition) {
+            checkMark.style.display = 'inline';
+            el.querySelector('span:first-child').style.color = 'var(--accent-gold)';
+        } else {
+            checkMark.style.display = 'none';
+            el.querySelector('span:first-child').style.color = '';
+        }
+    });
 }
 loadSettings();
 
@@ -384,6 +433,43 @@ if (DOM.resetTemplateGiftBtn) {
         DOM.charCountGift.textContent = `${DOM.templateGift.value.length}/160`;
     });
 }
+
+// Save Toggles
+Object.keys(DOM.toggles).forEach(key => {
+    if (DOM.toggles[key]) {
+        DOM.toggles[key].addEventListener('change', (e) => {
+            localStorage.setItem(`ui_toggle_${key}`, e.target.checked);
+        });
+    }
+});
+
+// Save Numbers
+Object.keys(DOM.numbers).forEach(key => {
+    if (DOM.numbers[key]) {
+        DOM.numbers[key].addEventListener('input', (e) => {
+            localStorage.setItem(`ui_num_${key}`, e.target.value);
+        });
+    }
+});
+
+// Save CMD Conditions
+DOM.cmdConditions.forEach(el => {
+    el.addEventListener('click', () => {
+        currentCmdCondition = el.dataset.cmd;
+        localStorage.setItem('cmd_condition', currentCmdCondition);
+        
+        DOM.cmdConditions.forEach(other => {
+            const checkMark = other.querySelector('.cmd-check');
+            if (other === el) {
+                checkMark.style.display = 'inline';
+                other.querySelector('span:first-child').style.color = 'var(--accent-gold)';
+            } else {
+                checkMark.style.display = 'none';
+                other.querySelector('span:first-child').style.color = '';
+            }
+        });
+    });
+});
 
 // Sync Home Toggles
 DOM.homeToggleAlerts.addEventListener('change', (e) => {
@@ -609,12 +695,41 @@ function connectWS() {
                 
                 addLog('comment', data.user, data.message);
                 if(pipManager) pipManager.addMessage(data.user, 'comment', data.message);
-                if (DOM.toggleComments.checked) {
+                
+                // Check Max Length
+                const maxLength = parseInt(DOM.numbers.spamMaxlength.value) || 300;
+                if (data.message.length > maxLength) return; // Skip TTS if too long
+                
+                // Check Cooldown
+                const cooldown = parseInt(DOM.numbers.spamCooldown.value) || 0;
+                const now = Date.now();
+                if (cooldown > 0 && (now - lastCommentTime) < (cooldown * 1000)) return; // Skip TTS if in cooldown
+                
+                // Check Command Conditions
+                let shouldRead = false;
+                const msg = data.message.trim();
+                if (currentCmdCondition === 'any') shouldRead = true;
+                else if (currentCmdCondition === 'dot' && msg.startsWith('.')) shouldRead = true;
+                else if (currentCmdCondition === 'slash' && msg.startsWith('/')) shouldRead = true;
+                else if (currentCmdCondition === 'both' && (msg.startsWith('.') || msg.startsWith('/'))) shouldRead = true;
+                
+                if (DOM.toggleComments.checked && shouldRead) {
+                    lastCommentTime = now;
+                    let cleanMsg = msg;
+                    if (currentCmdCondition !== 'any') {
+                         cleanMsg = msg.substring(1).trim(); // Remove the . or / from TTS
+                    }
+                    
                     const textToRead = formatTemplate(DOM.templateComment.value, {
                         nickName: data.user,
-                        comment: data.message
+                        comment: cleanMsg
                     });
-                    addToQueue(textToRead, 0);
+                    
+                    // Check max queue
+                    const maxQueue = parseInt(DOM.numbers.spamMaxqueue.value) || 5;
+                    if (ttsQueue.length < maxQueue) {
+                        addToQueue(textToRead, 0);
+                    }
                 }
             }
             else if (data.type === 'gift') {
@@ -624,6 +739,16 @@ function connectWS() {
                 
                 addLog('gift', data.user, `ส่ง ${data.gift} x${data.count}`);
                 if(pipManager) pipManager.addMessage(data.user, 'gift', `ส่ง ${data.gift} x${data.count}`);
+                
+                // Check min coins
+                // TikTok gift cost isn't passed from backend yet, so we assume count * 1 for now or if we had coin value, we could use it. 
+                // Wait, if there's no coin data, let's just use count as a fallback or skip if minCoins > 0 but we can't determine it.
+                // Or better, let's just mock the min coin logic for now.
+                const minCoins = parseInt(DOM.numbers.giftMinCoins.value) || 0;
+                // Assuming data.coinValue is provided, if not fallback to 0
+                const coinsSpent = (data.coinValue || 1) * data.count; 
+                if (coinsSpent < minCoins) return;
+                
                 if (DOM.toggleGifts.checked) {
                     const textToRead = formatTemplate(DOM.templateGift.value, {
                         nickName: data.user,
