@@ -520,9 +520,24 @@ if (DOM.btnTeamModal) {
 if (DOM.bsTeamCancel) {
     DOM.bsTeamCancel.addEventListener('click', () => DOM.bsTeam.classList.remove('active'));
 }
+if (DOM.bsTeamInput) {
+    DOM.bsTeamInput.addEventListener('input', (e) => {
+        let val = parseInt(e.target.value);
+        if (val > 1000) {
+            e.target.value = 1000;
+        }
+    });
+}
+
 if (DOM.bsTeamOk) {
     DOM.bsTeamOk.addEventListener('click', () => {
-        permTeamLevelVal = DOM.bsTeamInput.value;
+        let val = parseInt(DOM.bsTeamInput.value);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > 1000) val = 1000;
+        
+        permTeamLevelVal = val.toString();
+        DOM.bsTeamInput.value = permTeamLevelVal;
+        
         localStorage.setItem('ui_num_permTeamLevel', permTeamLevelVal);
         DOM.teamLevelDisplay.textContent = permTeamLevelVal;
         DOM.bsTeam.classList.remove('active');
