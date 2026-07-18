@@ -73,6 +73,8 @@ const DOM = {
         spamMaxqueue: document.getElementById('spam-maxqueue'),
         spamMaxlength: document.getElementById('spam-maxlength'),
         giftMinCoins: document.getElementById('gift-min-coins'),
+        permTeamLevel: document.getElementById('perm-team-level'),
+        permGifterRank: document.getElementById('perm-gifter-rank')
     },
     cmdConditions: document.querySelectorAll('.cmd-condition')
 };
@@ -434,11 +436,29 @@ if (DOM.resetTemplateGiftBtn) {
     });
 }
 
-// Save Toggles
+// Save Toggles and handle All Users logic
 Object.keys(DOM.toggles).forEach(key => {
     if (DOM.toggles[key]) {
         DOM.toggles[key].addEventListener('change', (e) => {
-            localStorage.setItem(`ui_toggle_${key}`, e.target.checked);
+            const isChecked = e.target.checked;
+            localStorage.setItem(`ui_toggle_${key}`, isChecked);
+            
+            // Logic for "All Users" (permAll)
+            if (key === 'permAll') {
+                const otherToggles = ['permFollowers', 'permMembers', 'permMods', 'permTeam', 'permGifters'];
+                otherToggles.forEach(tKey => {
+                    if (DOM.toggles[tKey]) {
+                        DOM.toggles[tKey].checked = !isChecked; // Reverse state
+                        localStorage.setItem(`ui_toggle_${tKey}`, !isChecked);
+                    }
+                });
+            } else if (key !== 'spamFilter' && isChecked) {
+                // If any other permission is turned ON, turn OFF "All Users"
+                if (DOM.toggles.permAll && DOM.toggles.permAll.checked) {
+                     DOM.toggles.permAll.checked = false;
+                     localStorage.setItem(`ui_toggle_permAll`, false);
+                }
+            }
         });
     }
 });
