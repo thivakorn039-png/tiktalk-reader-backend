@@ -35,6 +35,7 @@ const DOM = {
     toggleComments: document.getElementById('toggle-comments'),
     toggleGifts: document.getElementById('toggle-gifts'),
     toggleFollows: document.getElementById('toggle-follows'),
+    toggleShares: document.getElementById('toggle-shares'),
     
     // TTS Settings
     voiceSelect: document.getElementById('voice-select'),
@@ -48,6 +49,8 @@ const DOM = {
     templateBoxes: document.querySelectorAll('.template-box'),
     templateComment: document.getElementById('template-comment'),
     templateGift: document.getElementById('template-gift'),
+    templateFollow: document.getElementById('template-follow'),
+    templateShare: document.getElementById('template-share'),
     resetTemplateBtn: document.getElementById('reset-template'),
     previewVoiceBtn: document.getElementById('preview-voice-btn')
 };
@@ -113,7 +116,7 @@ class PiPManager {
         }
 
         // Canvas Video PiP Sync
-        let prefix = type === 'gift' ? '🎁' : (type === 'comment' ? '💬' : '🔔');
+        let prefix = type === 'gift' ? '🎁' : (type === 'share' ? '🔄' : (type === 'comment' ? '💬' : '🔔'));
         this.messages.push({user, content, prefix});
         if(this.messages.length > 4) this.messages.shift();
         this.draw();
@@ -230,6 +233,8 @@ pipManager.startLoop();
 // Default Templates
 const DEFAULT_COMMENT = "{nickName} พูดว่า {comment}";
 const DEFAULT_GIFT = "ขอบคุณ {nickName} สำหรับ {giftName} {giftCount} ชิ้น";
+const DEFAULT_FOLLOW = "ขอบคุณ {nickName} ที่กดติดตามครับ";
+const DEFAULT_SHARE = "ขอบคุณ {nickName} ที่แชร์ไลฟ์ครับ";
 
 // Check first time setup
 function initSetup() {
@@ -323,6 +328,8 @@ DOM.setupCancelBtn.addEventListener('click', () => {
 function loadSettings() {
     DOM.templateComment.value = localStorage.getItem('tpl_comment') || DEFAULT_COMMENT;
     DOM.templateGift.value = localStorage.getItem('tpl_gift') || DEFAULT_GIFT;
+    DOM.templateFollow.value = localStorage.getItem('tpl_follow') || DEFAULT_FOLLOW;
+    DOM.templateShare.value = localStorage.getItem('tpl_share') || DEFAULT_SHARE;
     
     DOM.speedSlider.value = localStorage.getItem('tts_speed') || "1.0";
     DOM.speedValue.textContent = DOM.speedSlider.value;
@@ -337,6 +344,8 @@ loadSettings();
 // Save Settings Event Listeners
 DOM.templateComment.addEventListener('input', () => localStorage.setItem('tpl_comment', DOM.templateComment.value));
 DOM.templateGift.addEventListener('input', () => localStorage.setItem('tpl_gift', DOM.templateGift.value));
+DOM.templateFollow.addEventListener('input', () => localStorage.setItem('tpl_follow', DOM.templateFollow.value));
+DOM.templateShare.addEventListener('input', () => localStorage.setItem('tpl_share', DOM.templateShare.value));
 DOM.speedSlider.addEventListener('input', (e) => {
     DOM.speedValue.textContent = parseFloat(e.target.value).toFixed(1);
     localStorage.setItem('tts_speed', e.target.value);
@@ -351,8 +360,12 @@ if(DOM.pitchSlider) {
 DOM.resetTemplateBtn.addEventListener('click', () => {
     DOM.templateComment.value = DEFAULT_COMMENT;
     DOM.templateGift.value = DEFAULT_GIFT;
+    DOM.templateFollow.value = DEFAULT_FOLLOW;
+    DOM.templateShare.value = DEFAULT_SHARE;
     localStorage.setItem('tpl_comment', DEFAULT_COMMENT);
     localStorage.setItem('tpl_gift', DEFAULT_GIFT);
+    localStorage.setItem('tpl_follow', DEFAULT_FOLLOW);
+    localStorage.setItem('tpl_share', DEFAULT_SHARE);
 });
 
 // Sync Home Toggles
@@ -360,6 +373,7 @@ DOM.homeToggleAlerts.addEventListener('change', (e) => {
     DOM.toggleComments.checked = e.target.checked;
     DOM.toggleGifts.checked = e.target.checked;
     DOM.toggleFollows.checked = e.target.checked;
+    DOM.toggleShares.checked = e.target.checked;
 });
 
 // Tab Navigation Logic
@@ -599,7 +613,24 @@ function connectWS() {
                 addLog('follow', data.user, 'เริ่มติดตามคุณ');
                 if(pipManager) pipManager.addMessage(data.user, 'follow', 'เริ่มติดตามคุณ');
                 if (DOM.toggleFollows.checked) {
-                    addToQueue(`ขอบคุณ ${data.user} ที่กดติดตามครับ`, 1);
+                    const textToRead = formatTemplate(DOM.templateFollow.value, {
+                        nickName: data.user
+                    });
+                    addToQueue(textToRead, 1);
+                }
+            }
+            else if (data.type === 'share') {
+                const msgKey = `share:${data.user}`;
+                if (recentMessages.has(msgKey)) return;
+                recentMessages.add(msgKey);
+                
+                addLog('share', data.user, 'แชร์ไลฟ์ของคุณ');
+                if(pipManager) pipManager.addMessage(data.user, 'share', 'แชร์ไลฟ์ของคุณ');
+                if (DOM.toggleShares.checked) {
+                    const textToRead = formatTemplate(DOM.templateShare.value, {
+                        nickName: data.user
+                    });
+                    addToQueue(textToRead, 1);
                 }
             }
         } catch (e) {}

@@ -162,13 +162,26 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="setting-row">
+                <!-- Follows -->
+                <div class="setting-item">
                     <div class="setting-info">
-                        <span class="icon" style="color: #3b82f6;">👤</span>
-                        <span>ติดตาม ></span>
+                        <div class="setting-title"><span class="icon">🔔</span> การติดตาม</div>
+                        <div class="setting-desc">อ่านออกเสียงเมื่อมีคนกดติดตามใหม่</div>
                     </div>
-                    <label class="ios-switch">
+                    <label class="toggle-switch">
                         <input type="checkbox" id="toggle-follows" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <!-- Shares / Reposts -->
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title"><span class="icon">🔄</span> การแชร์ / รีโพสต์</div>
+                        <div class="setting-desc">อ่านออกเสียงเมื่อมีคนแชร์ไลฟ์ของคุณ</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-shares" checked>
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -178,11 +191,6 @@
 
         <!-- TAB 3: ทีทีเอส (TTS) -->
         <section id="tab-tts" class="tab-pane">
-            <div class="tts-tabs">
-                <button class="tts-tab active" data-tts="comment">การสนทนาข้อความเป็นคำพูด</button>
-                <button class="tts-tab" data-tts="gift">ข้อความเป้นของขวัญคำพูด</button>
-            </div>
-
             <div class="settings-card">
                 <h4 class="card-title">การตั้งค่าเสียง</h4>
                 <div class="voice-select-wrapper">
@@ -212,19 +220,34 @@
 
             <div class="settings-card">
                 <h4 class="card-title">เทมเพลตข้อความ</h4>
-                <p class="desc">ใช้ {nickName}, {comment}, {giftName}, {giftCount}</p>
-                
-                <!-- Comment Template -->
-                <div class="template-box" id="template-box-comment">
-                    <textarea id="template-comment" rows="2">{nickName} พูดว่า {comment}</textarea>
+                <div class="tts-tabs">
+                    <button class="tts-tab active" data-tts="comment">แชท</button>
+                    <button class="tts-tab" data-tts="gift">ของขวัญ</button>
+                    <button class="tts-tab" data-tts="follow">ติดตาม</button>
+                    <button class="tts-tab" data-tts="share">แชร์</button>
                 </div>
                 
-                <!-- Gift Template -->
-                <div class="template-box" id="template-box-gift" style="display:none;">
-                    <textarea id="template-gift" rows="2">ขอบคุณ {nickName} สำหรับ {giftName} {giftCount} ชิ้น</textarea>
+                <div id="template-box-comment" class="template-box">
+                    <div class="desc">ตัวแปร: {nickName} = ชื่อคนพิมพ์, {comment} = ข้อความ</div>
+                    <textarea id="template-comment" rows="3"></textarea>
                 </div>
-
-                <div class="reset-btn" id="reset-template">↺ รีเซ็ตเทมเพลต TTS</div>
+                
+                <div id="template-box-gift" class="template-box" style="display: none;">
+                    <div class="desc">ตัวแปร: {nickName}, {giftName}, {giftCount}</div>
+                    <textarea id="template-gift" rows="3"></textarea>
+                </div>
+                
+                <div id="template-box-follow" class="template-box" style="display: none;">
+                    <div class="desc">ตัวแปร: {nickName} = ชื่อคนติดตาม</div>
+                    <textarea id="template-follow" rows="3"></textarea>
+                </div>
+                
+                <div id="template-box-share" class="template-box" style="display: none;">
+                    <div class="desc">ตัวแปร: {nickName} = ชื่อคนแชร์</div>
+                    <textarea id="template-share" rows="3"></textarea>
+                </div>
+                
+                <div id="reset-template" class="reset-btn">คืนค่าเริ่มต้นเทมเพลตทั้งหมด</div>
             </div>
         </section>
     </main>

@@ -15,3 +15,7 @@ class GiftEvent(BaseModel):
 class FollowEvent(BaseModel):
     type: str = "follow"
     user: str
+
+class ShareEvent(BaseModel):
+    type: str = "share"
+    user: str

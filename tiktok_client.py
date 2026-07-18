@@ -1,8 +1,8 @@
 import asyncio
 from TikTokLive import TikTokLiveClient
-from TikTokLive.events import ConnectEvent, DisconnectEvent, CommentEvent, GiftEvent, FollowEvent
+from TikTokLive.events import ConnectEvent, DisconnectEvent, CommentEvent, GiftEvent, FollowEvent, ShareEvent
 from fastapi import WebSocket
-from models import CommentEvent as ModelComment, GiftEvent as ModelGift, FollowEvent as ModelFollow
+from models import CommentEvent as ModelComment, GiftEvent as ModelGift, FollowEvent as ModelFollow, ShareEvent as ModelShare
 import traceback
 
 async def start_tiktok_client(username: str, websocket: WebSocket):
@@ -52,6 +52,14 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
         async def on_follow(event: FollowEvent):
             try:
                 model = ModelFollow(user=event.user.nickname)
+                await websocket.send_json(model.model_dump())
+            except:
+                pass
+
+        @client.on(ShareEvent)
+        async def on_share(event: ShareEvent):
+            try:
+                model = ModelShare(user=event.user.nickname)
                 await websocket.send_json(model.model_dump())
             except:
                 pass
