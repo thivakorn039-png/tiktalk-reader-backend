@@ -41,7 +41,8 @@ const DOM = {
     templateBoxes: document.querySelectorAll('.template-box'),
     templateComment: document.getElementById('template-comment'),
     templateGift: document.getElementById('template-gift'),
-    resetTemplateBtn: document.getElementById('reset-template')
+    resetTemplateBtn: document.getElementById('reset-template'),
+    previewVoiceBtn: document.getElementById('preview-voice-btn')
 };
 
 let ws = null;
@@ -408,4 +409,16 @@ DOM.startBtn.addEventListener('click', () => {
 
 DOM.exitConnectionBtn.addEventListener('click', () => {
     disconnectWS();
+});
+
+DOM.previewVoiceBtn.addEventListener('click', () => {
+    // Unlock Audio Contexts just in case
+    synth.cancel(); 
+    const unlockUtterance = new SpeechSynthesisUtterance('');
+    unlockUtterance.volume = 0;
+    synth.speak(unlockUtterance);
+    new Audio('data:audio/mp3;base64,//MkxAAQ').play().catch(e => {});
+
+    // Queue preview message
+    addToQueue("สวัสดีครับ นี่คือเสียงตัวอย่างของคุณ", 3); // High priority
 });
