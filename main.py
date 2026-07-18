@@ -27,6 +27,14 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 def read_root():
     return FileResponse(os.path.join(static_dir, "index.html"))
 
+@app.get("/manifest.json")
+def read_manifest():
+    return FileResponse(os.path.join(static_dir, "manifest.json"))
+
+@app.get("/sw.js")
+def read_sw():
+    return FileResponse(os.path.join(static_dir, "sw.js"))
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
