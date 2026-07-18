@@ -86,7 +86,7 @@ function updateProfileAvatar() {
     }
 }
 
-DOM.setupSaveBtn.addEventListener('click', () => {
+DOM.setupSaveBtn.addEventListener('click', async () => {
     let name = DOM.setupUsername.value.trim();
     if (!name) return alert('กรุณากรอกชื่อ TikTok');
     if (name.startsWith('@')) name = name.substring(1);
@@ -100,7 +100,20 @@ DOM.setupSaveBtn.addEventListener('click', () => {
     tiktokUsername = name;
     localStorage.setItem('tiktok_username', name);
     DOM.setupModal.classList.add('hidden');
-    updateProfileAvatar();
+    updateProfileAvatar(); // Set initial letter instantly
+
+    // Fetch avatar from backend API
+    try {
+        const res = await fetch(`/api/avatar/${encodeURIComponent(name)}`);
+        const json = await res.json();
+        if (json.avatarUrl) {
+            tiktokAvatar = json.avatarUrl;
+            localStorage.setItem('tiktok_avatar', tiktokAvatar);
+            updateProfileAvatar(); // Update with actual image
+        }
+    } catch (e) {
+        console.error("Failed to fetch avatar", e);
+    }
 });
 
 // Profile Modal Events

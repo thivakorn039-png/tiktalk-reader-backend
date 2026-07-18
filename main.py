@@ -4,7 +4,9 @@ import os
 import sys
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+import urllib.request
+import urllib.parse
 from tiktok_client import start_tiktok_client
 
 app = FastAPI(title="TikTalk AI Reader Backend")
@@ -34,6 +36,21 @@ def read_manifest():
 @app.get("/sw.js")
 def read_sw():
     return FileResponse(os.path.join(static_dir, "sw.js"))
+
+@app.get("/api/avatar/{username}")
+def get_avatar(username: str):
+    try:
+        url = f"https://www.tikwm.com/api/user/info?unique_id={urllib.parse.quote(username)}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode())
+            if data.get("code") == 0 and "data" in data and "user" in data["data"]:
+                avatar = data["data"]["user"].get("avatarMedium") or data["data"]["user"].get("avatarLarger")
+                if avatar:
+                    return {"avatarUrl": avatar}
+    except Exception as e:
+        print(f"Avatar fetch error: {e}")
+    return {"avatarUrl": None}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
