@@ -4,8 +4,13 @@ const DOM = {
     setupUsername: document.getElementById('setup-username'),
     setupSaveBtn: document.getElementById('setup-save-btn'),
     
-    // Header
+    // Header & Profile Modal
     profileAvatar: document.getElementById('profile-avatar'),
+    profileModal: document.getElementById('profile-modal'),
+    profileModalAvatar: document.getElementById('profile-modal-avatar'),
+    profileModalName: document.getElementById('profile-modal-name'),
+    btnChangeChannel: document.getElementById('btn-change-channel'),
+    btnCloseProfile: document.getElementById('btn-close-profile'),
 
     // Home / Connection
     startBtn: document.getElementById('start-btn'),
@@ -85,10 +90,50 @@ DOM.setupSaveBtn.addEventListener('click', () => {
     if (!name) return alert('กรุณากรอกชื่อ TikTok');
     if (name.startsWith('@')) name = name.substring(1);
     
+    // If name changed, clear old avatar
+    if (name !== tiktokUsername) {
+        tiktokAvatar = '';
+        localStorage.removeItem('tiktok_avatar');
+    }
+
     tiktokUsername = name;
     localStorage.setItem('tiktok_username', name);
     DOM.setupModal.classList.add('hidden');
     updateProfileAvatar();
+});
+
+// Profile Modal Events
+DOM.profileAvatar.addEventListener('click', () => {
+    if (!tiktokUsername) {
+        DOM.setupModal.classList.remove('hidden');
+        return;
+    }
+    DOM.profileModal.classList.remove('hidden');
+    DOM.profileModalName.textContent = `@${tiktokUsername}`;
+    
+    if (tiktokAvatar) {
+        DOM.profileModalAvatar.style.backgroundImage = `url(${tiktokAvatar})`;
+        DOM.profileModalAvatar.textContent = '';
+    } else {
+        DOM.profileModalAvatar.textContent = tiktokUsername.charAt(0).toUpperCase();
+        DOM.profileModalAvatar.style.backgroundImage = 'none';
+    }
+});
+
+DOM.btnCloseProfile.addEventListener('click', () => {
+    DOM.profileModal.classList.add('hidden');
+});
+
+DOM.btnChangeChannel.addEventListener('click', () => {
+    DOM.profileModal.classList.add('hidden');
+    // Force prompt
+    tiktokUsername = '';
+    tiktokAvatar = '';
+    localStorage.removeItem('tiktok_username');
+    localStorage.removeItem('tiktok_avatar');
+    DOM.setupUsername.value = '';
+    updateProfileAvatar();
+    DOM.setupModal.classList.remove('hidden');
 });
 
 // Load Settings

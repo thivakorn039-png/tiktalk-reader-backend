@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
     <title>TikTalk AI Reader</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
@@ -25,6 +26,16 @@
             <p>กรุณากรอกไอดี TikTok ของคุณเพื่อเริ่มต้นใช้งาน (ใส่แค่ชื่อ ไม่ต้องใส่ @)</p>
             <input type="text" id="setup-username" placeholder="tiktok_username" autocomplete="off">
             <button id="setup-save-btn" class="btn primary">บันทึก</button>
+        </div>
+    </div>
+
+    <!-- Profile Info Modal -->
+    <div id="profile-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div id="profile-modal-avatar" style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-main); margin: 0 auto 1rem; border: 2px solid var(--border-color); background-size: cover; background-position: center; display:flex; align-items:center; justify-content:center; color:white; font-size:2rem; font-weight:bold;"></div>
+            <h2 id="profile-modal-name" style="margin-bottom: 1.5rem;">@username</h2>
+            <button id="btn-change-channel" class="btn" style="background: var(--switch-off); margin-bottom: 0.5rem;">เปลี่ยนช่อง TikTok</button>
+            <button id="btn-close-profile" class="text-btn" style="padding: 0.5rem;">ปิด</button>
         </div>
     </div>
 
@@ -59,9 +70,9 @@
     
     <!-- Top Header -->
     <header class="top-header">
-        <div class="logo-circ" id="profile-avatar">T</div>
-        <div class="title">แกลเลอรี่เสียง TTS</div>
-        <div class="coins">🪙 100k</div>
+        <div id="profile-avatar" class="logo-circ" style="cursor: pointer;">T</div>
+        <div class="title">TikTalk Reader</div>
+        <button class="coins">PRO</button>
     </header>
 
     <main class="app-content">
