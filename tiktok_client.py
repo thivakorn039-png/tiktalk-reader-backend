@@ -55,7 +55,7 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
             print(f"Error connecting to TikTok: {e}")
             traceback.print_exc()
             try:
-                await websocket.send_json({"type": "status", "status": "error", "message": str(e)})
+                await websocket.send_json({"type": "status", "status": "error", "message": f"{type(e).__name__}: {str(e)}"})
             except:
                 break
             await asyncio.sleep(5) # Reconnect delay
