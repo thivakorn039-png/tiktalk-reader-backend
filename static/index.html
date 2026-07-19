@@ -360,10 +360,11 @@
                 </div>
             </div>
             
-            <!-- Follows & Shares (Hidden from UI but templates kept for backend alert logic) -->
+            
+            <!-- Follows & Shares (ใส่ข้อความเริ่มต้นไว้ข้างใน เพื่อให้ระบบ TTS และ Alert ดึงไปใช้งานได้) -->
             <div style="display: none;">
-                <textarea id="template-follow"></textarea>
-                <textarea id="template-share"></textarea>
+                <textarea id="template-follow">{user} เริ่มติดตามคุณแล้ว</textarea>
+                <textarea id="template-share">{user} ได้แชร์และรีโพสต์ไลฟ์นี้</textarea>
             </div>
         </section>
     </main>
