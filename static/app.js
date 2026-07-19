@@ -717,7 +717,7 @@ function populateVoiceList() {
     DOM.voiceSelect.innerHTML = "";
 
     const cloudOption = document.createElement("option");
-    cloudOption.textContent = "🎙️ เสียง TikTok (Cloud TTS) - แนะนำ";
+    cloudOption.textContent = "🎙️ กูเกิลวอยซ์ (เสียงผู้หญิง) - แนะนำ";
     cloudOption.value = "cloud";
     DOM.voiceSelect.appendChild(cloudOption);
 
@@ -730,10 +730,13 @@ function populateVoiceList() {
 
     if (DOM.voiceSelect) {
         DOM.voiceSelect.addEventListener("change", (e) => {
+            const nameEl = document.getElementById('selected-voice-name');
             if (e.target.value === "cloud") {
-                DOM.currentVoiceLang.textContent = "ไทย";
+                if(nameEl) nameEl.textContent = "กูเกิลวอยซ์ (เสียงผู้หญิง)";
+                DOM.currentVoiceLang.textContent = "แนะนำ (คลิกเพื่อเปลี่ยน)";
             } else {
                 const v = voices[e.target.value];
+                if(nameEl) nameEl.textContent = v ? v.name : "Unknown";
                 DOM.currentVoiceLang.textContent = v ? v.lang : "Unknown";
             }
         });
