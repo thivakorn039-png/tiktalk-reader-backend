@@ -967,6 +967,26 @@ function connectWS() {
                 )
                     shouldRead = true;
 
+                // --- Permissions Check ---
+                if (shouldRead) {
+                    let hasPermission = false;
+                    if (DOM.toggles.permAll && DOM.toggles.permAll.checked) {
+                        hasPermission = true;
+                    } else {
+                        if (DOM.toggles.permFollowers && DOM.toggles.permFollowers.checked && data.is_follower) hasPermission = true;
+                        if (DOM.toggles.permMembers && DOM.toggles.permMembers.checked && data.is_member) hasPermission = true;
+                        if (DOM.toggles.permMods && DOM.toggles.permMods.checked && data.is_moderator) hasPermission = true;
+                        
+                        const reqTeamLevel = parseInt(permTeamLevelVal) || 1;
+                        if (DOM.toggles.permTeam && DOM.toggles.permTeam.checked && (data.team_level >= reqTeamLevel)) hasPermission = true;
+                        
+                        const reqGifterRank = parseInt(permGifterRankVal) || 1;
+                        if (DOM.toggles.permGifters && DOM.toggles.permGifters.checked && (data.gifter_rank >= reqGifterRank)) hasPermission = true;
+                    }
+                    if (!hasPermission) shouldRead = false;
+                }
+                // -------------------------
+
                 if (msg.includes("555")) {
                     const laughAudio = new Audio("/static/audio/laugh.mp3");
                     laughAudio.volume = 0.5;

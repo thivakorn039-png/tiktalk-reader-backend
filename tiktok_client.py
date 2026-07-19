@@ -78,8 +78,37 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
                 )
                 if nickname == "Unknown":
                     nickname = getattr(user_obj, "unique_id", "Unknown")
+                is_follower = getattr(user_obj, "is_follower", False)
+                if hasattr(user_obj, "follow_info") and user_obj.follow_info:
+                    follow_status = getattr(user_obj.follow_info, "follow_status", 0)
+                    if follow_status > 0:
+                        is_follower = True
 
-                model = ModelComment(user=nickname, message=msg)
+                is_moderator = getattr(user_obj, "user_role", 0) == 1
+                team_level = 0
+                is_member = False
+                
+                fans_club = getattr(user_obj, "fans_club", None)
+                if fans_club:
+                    fans_data = getattr(fans_club, "data", None)
+                    if fans_data:
+                        team_level = getattr(fans_data, "level", 0)
+                        if team_level > 0:
+                            is_member = True
+
+                gifter_rank = getattr(user_obj, "pay_score", 0) # Fallback, real rank is harder to get without badge parsing
+                if gifter_rank > 0:
+                    gifter_rank = 1
+
+                model = ModelComment(
+                    user=nickname,
+                    message=msg,
+                    is_follower=is_follower,
+                    is_member=is_member,
+                    is_moderator=is_moderator,
+                    team_level=team_level,
+                    gifter_rank=gifter_rank
+                )
                 await websocket.send_json(model.model_dump())
             except Exception as e:
                 import traceback
