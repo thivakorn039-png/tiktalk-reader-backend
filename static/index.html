@@ -70,6 +70,10 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="12" y="14" width="7" height="5" rx="1" ry="1"></rect></svg>
                 เปิดหน้าต่างลอย (PiP)
             </button>
+            <button id="btn-pip-green" class="btn" style="background: #10b981; margin-bottom: 0.5rem; color: #fff;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                สลับโหมด OBS (Green Screen)
+            </button>
             <button id="exit-connection-btn" class="exit-btn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 หยุดการเชื่อมต่อ
@@ -87,7 +91,12 @@
     <header class="top-header">
         <div id="profile-avatar" class="logo-circ" style="cursor: pointer;">T</div>
         <div class="title">TikTalk Reader</div>
-        <button class="coins">PRO</button>
+        <div style="display:flex; gap: 0.5rem; align-items:center;">
+            <button id="btn-top-settings" style="background:none; border:none; color:#a0aec0; cursor:pointer;" onclick="document.querySelector('[data-target=\'tab-tts\']').click()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+            <button class="coins">PRO</button>
+        </div>
     </header>
 
     <main class="app-content">
@@ -198,6 +207,18 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                
+                <!-- Likes -->
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="icon" style="color: #ef4444;">❤️</span>
+                        <span>การกดหัวใจ (Like) ></span>
+                    </div>
+                    <label class="ios-switch">
+                        <input type="checkbox" id="toggle-likes" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
                 <div class="add-new-btn">+ เพิ่มการแจ้งเตือนเสียงใหม่</div>
             </div>
         </section>
@@ -205,8 +226,10 @@
         <!-- TAB 3: ทีทีเอส (TTS) -->
         <section id="tab-tts" class="tab-pane">
             <div class="top-segmented-control">
-                <button class="segment active" data-main-tts="comment">การสนทนาข้อความเป็นคำพูด</button>
-                <button class="segment" data-main-tts="gift">ข้อความเป็นของขวัญคำพูด</button>
+                <button class="segment active" data-main-tts="comment">คอมเมนต์</button>
+                <button class="segment" data-main-tts="gift">ของขวัญ</button>
+                <button class="segment" data-main-tts="like">กดหัวใจ</button>
+                <button class="segment" data-main-tts="share">แชร์ไลฟ์</button>
             </div>
 
             <!-- Voice Settings (Shared) -->
@@ -366,10 +389,54 @@
                 </div>
             </div>
             
-            <!-- Follows & Shares (ใส่ข้อความเริ่มต้นไว้ข้างใน เพื่อไม่ให้ระบบอ่านเสียงเงียบหายไป) -->
+            <!-- Like Settings Tab View -->
+            <div id="tts-view-like" class="tts-main-view" style="display: none;">
+                <div class="settings-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                        <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin:0;">เทมเพลตข้อความ</h4>
+                        <span style="font-size: 0.8rem; color: #a0aec0;" id="char-count-like">0/160</span>
+                    </div>
+                    <textarea id="template-like" rows="3" style="width: 100%; background: var(--bg-card); border: 1px solid transparent; color: var(--accent-gold); padding: 1rem; border-radius: 0.5rem; resize: none; margin-bottom: 0.5rem;">ขอบคุณ {user} ที่เคาะจอ {count} ครั้ง</textarea>
+                    
+                    <div style="background: rgba(239, 68, 68, 0.1); border-radius: 0.5rem; text-align: center; margin-top: 0.5rem;">
+                        <div id="reset-template-like" class="reset-btn" style="color: #ef4444; background: transparent; padding: 1rem; width: 100%; cursor: pointer;">↺ รีเซ็ตเทมเพลต TTS</div>
+                    </div>
+                </div>
+                
+                <div class="settings-card">
+                    <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem;">ตัวแปรที่ใช้ได้</h4>
+                    <ul style="color: #a0aec0; font-size: 0.9rem; padding-left: 1.5rem; margin: 0;">
+                        <li><strong style="color: #fff;">{user}</strong> - ชื่อผู้ที่กดหัวใจ</li>
+                        <li><strong style="color: #fff;">{count}</strong> - จำนวนครั้งที่กด</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Share Settings Tab View -->
+            <div id="tts-view-share" class="tts-main-view" style="display: none;">
+                <div class="settings-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                        <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin:0;">เทมเพลตข้อความ</h4>
+                        <span style="font-size: 0.8rem; color: #a0aec0;" id="char-count-share">0/160</span>
+                    </div>
+                    <textarea id="template-share" rows="3" style="width: 100%; background: var(--bg-card); border: 1px solid transparent; color: var(--accent-gold); padding: 1rem; border-radius: 0.5rem; resize: none; margin-bottom: 0.5rem;">{user} ได้แชร์และรีโพสต์ไลฟ์นี้</textarea>
+                    
+                    <div style="background: rgba(239, 68, 68, 0.1); border-radius: 0.5rem; text-align: center; margin-top: 0.5rem;">
+                        <div id="reset-template-share" class="reset-btn" style="color: #ef4444; background: transparent; padding: 1rem; width: 100%; cursor: pointer;">↺ รีเซ็ตเทมเพลต TTS</div>
+                    </div>
+                </div>
+                
+                <div class="settings-card">
+                    <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem;">ตัวแปรที่ใช้ได้</h4>
+                    <ul style="color: #a0aec0; font-size: 0.9rem; padding-left: 1.5rem; margin: 0;">
+                        <li><strong style="color: #fff;">{user}</strong> - ชื่อผู้ที่แชร์ไลฟ์</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Follows -->
             <div style="display: none;">
                 <textarea id="template-follow">{user} เริ่มติดตามคุณแล้ว</textarea>
-                <textarea id="template-share">{user} ได้แชร์และรีโพสต์ไลฟ์นี้</textarea>
             </div>
         </section>
     </main>

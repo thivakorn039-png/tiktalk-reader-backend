@@ -22,6 +22,7 @@ const DOM = {
     connectionOverlay: document.getElementById("connection-overlay"),
     exitConnectionBtn: document.getElementById("exit-connection-btn"),
     btnPip: document.getElementById("btn-pip"),
+    btnPipGreen: document.getElementById("btn-pip-green"),
     overlayStatusText: document.getElementById("overlay-status-text"),
     overlayStatusDesc: document.getElementById("overlay-status-desc"),
 
@@ -40,6 +41,7 @@ const DOM = {
     toggleGifts: document.getElementById("toggle-gifts"),
     toggleFollows: document.getElementById("toggle-follows"),
     toggleShares: document.getElementById("toggle-shares"),
+    toggleLikes: document.getElementById("toggle-likes"),
 
     // TTS Settings
     voiceSelect: document.getElementById("voice-select"),
@@ -55,12 +57,17 @@ const DOM = {
     templateGift: document.getElementById("template-gift"),
     templateFollow: document.getElementById("template-follow"),
     templateShare: document.getElementById("template-share"),
+    templateLike: document.getElementById("template-like"),
     resetTemplateCommentBtn: document.getElementById(
         "reset-template-comment"
     ),
     resetTemplateGiftBtn: document.getElementById("reset-template-gift"),
+    resetTemplateLikeBtn: document.getElementById("reset-template-like"),
+    resetTemplateShareBtn: document.getElementById("reset-template-share"),
     charCountComment: document.getElementById("char-count-comment"),
     charCountGift: document.getElementById("char-count-gift"),
+    charCountLike: document.getElementById("char-count-like"),
+    charCountShare: document.getElementById("char-count-share"),
     currentVoiceLang: document.getElementById("current-voice-lang"),
     previewVoiceBtn: document.getElementById("preview-voice-btn"),
 
@@ -123,6 +130,7 @@ class PiPManager {
         this.video = document.getElementById("pip-video");
         this.messages = [];
         this.stream = null;
+        this.isGreenScreen = false;
         this.init();
     }
 
@@ -145,13 +153,14 @@ class PiPManager {
             if (container) {
                 const item = document.createElement("div");
                 item.style.padding = "0.5rem";
-                item.style.background = "#242931";
+                item.style.background = this.isGreenScreen ? "rgba(0,0,0,0.5)" : "#242931";
                 item.style.borderRadius = "0.5rem";
                 item.style.fontSize = "0.95rem";
                 item.style.marginBottom = "0.5rem";
+                item.className = "msg-anim";
 
                 if (type === "system") {
-                    item.innerHTML = `<div style="color:#a0aec0">${content}</div>`;
+                    item.innerHTML = `<div style="color:${this.isGreenScreen ? '#fff' : '#a0aec0'}">${content}</div>`;
                 } else {
                     let color =
                         type === "gift"
@@ -186,7 +195,7 @@ class PiPManager {
     }
 
     draw() {
-        this.ctx.fillStyle = "#14161a";
+        this.ctx.fillStyle = this.isGreenScreen ? "#00ff00" : "#14161a";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.fillStyle = "#3b82f6";
@@ -248,7 +257,16 @@ class PiPManager {
                     });
                 window.pipWindow = pipWindow;
 
-                pipWindow.document.body.style.background = "#14161a";
+                pipWindow.document.head.innerHTML = `
+                <style>
+                @keyframes slideUpFade {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .msg-anim { animation: slideUpFade 0.3s ease-out forwards; }
+                </style>
+                `;
+                pipWindow.document.body.style.background = this.isGreenScreen ? "#00ff00" : "#14161a";
                 pipWindow.document.body.style.margin = "0";
                 pipWindow.document.body.style.padding = "1rem";
                 pipWindow.document.body.style.fontFamily =
@@ -949,6 +967,12 @@ function connectWS() {
                 )
                     shouldRead = true;
 
+                if (msg.includes("555")) {
+                    const laughAudio = new Audio("/static/audio/laugh.mp3");
+                    laughAudio.volume = 0.5;
+                    laughAudio.play().catch(e => console.error("Laugh audio error:", e));
+                }
+
                 if (DOM.toggleComments.checked && shouldRead) {
                     lastCommentTime = now;
                     let cleanMsg = msg;
@@ -992,6 +1016,12 @@ function connectWS() {
                 const coinsSpent = (data.coinValue || 1) * data.count;
                 if (coinsSpent < minCoins) return;
 
+                if (coinsSpent >= 100) {
+                    const applauseAudio = new Audio("/static/audio/applause.mp3");
+                    applauseAudio.volume = 0.5;
+                    applauseAudio.play().catch(e => console.error("Applause audio error:", e));
+                }
+
                 if (DOM.toggleGifts.checked) {
                     const textToRead = formatTemplate(
                         DOM.templateGift.value,
@@ -1002,6 +1032,32 @@ function connectWS() {
                         }
                     );
                     addToQueue(textToRead, 2);
+                }
+            } else if (data.type === "like") {
+                const msgKey = `like:${data.user}:${data.count}`;
+                if (recentMessages.has(msgKey)) return;
+                recentMessages.add(msgKey);
+
+                addLog("follow", data.user, `กดหัวใจให้ ${data.count} ครั้ง`);
+                if (pipManager)
+                    pipManager.addMessage(
+                        data.user,
+                        "follow",
+                        `กดหัวใจให้ ${data.count} ครั้ง`
+                    );
+
+                if (DOM.toggleLikes && DOM.toggleLikes.checked) {
+                    const tpl =
+                        DOM.templateLike &&
+                        DOM.templateLike.value.trim()
+                            ? DOM.templateLike.value
+                            : "ขอบคุณ {user} ที่เคาะจอ {count} ครั้ง";
+                    const textToRead = formatTemplate(tpl, {
+                        nickName: data.user,
+                        user: data.user,
+                        count: data.count
+                    });
+                    addToQueue(textToRead, 1);
                 }
             } else if (data.type === "follow") {
                 const msgKey = `follow:${data.user}`;
@@ -1105,6 +1161,35 @@ DOM.exitConnectionBtn.addEventListener("click", () => {
 
 DOM.btnPip.addEventListener("click", () => {
     pipManager.togglePiP();
+});
+
+DOM.btnPipGreen.addEventListener("click", () => {
+    pipManager.isGreenScreen = !pipManager.isGreenScreen;
+    if (pipManager.isGreenScreen) {
+        DOM.btnPipGreen.style.background = "#ef4444";
+        DOM.btnPipGreen.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+            ปิดโหมด OBS (Green Screen)
+        `;
+    } else {
+        DOM.btnPipGreen.style.background = "#10b981";
+        DOM.btnPipGreen.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+            สลับโหมด OBS (Green Screen)
+        `;
+    }
+    
+    // Update live pip window if it exists
+    if (window.pipWindow) {
+        window.pipWindow.document.body.style.background = pipManager.isGreenScreen ? "#00ff00" : "#14161a";
+        const msgs = window.pipWindow.document.querySelectorAll(".msg-anim");
+        msgs.forEach(msg => {
+            msg.style.background = pipManager.isGreenScreen ? "rgba(0,0,0,0.5)" : "#242931";
+            const innerDiv = msg.querySelector("div");
+            if (innerDiv) innerDiv.style.color = pipManager.isGreenScreen ? "#fff" : "#a0aec0";
+        });
+    }
+    pipManager.draw();
 });
 
 DOM.previewVoiceBtn.addEventListener("click", () => {

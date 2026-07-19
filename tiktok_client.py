@@ -9,6 +9,7 @@ from TikTokLive.events import (
     DisconnectEvent,
     FollowEvent,
     GiftEvent,
+    LikeEvent,
     ShareEvent,
     SocialEvent,
 )
@@ -139,6 +140,34 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
 
                 model = ModelFollow(user=nickname)
                 await websocket.send_json(model.model_dump())
+            except Exception:
+                pass
+
+        @client.on(LikeEvent)
+        async def on_like(event: LikeEvent):
+            try:
+                user_obj = getattr(
+                    event, "user", getattr(event, "user_info", None)
+                )
+                nickname = getattr(
+                    user_obj,
+                    "nick_name",
+                    getattr(user_obj, "nickname", "Unknown"),
+                )
+                if nickname == "Unknown":
+                    nickname = getattr(user_obj, "unique_id", "Unknown")
+
+                count = getattr(event, "count", 1)
+                total_likes = getattr(event, "total_likes", count)
+
+                await websocket.send_json(
+                    {
+                        "type": "like",
+                        "user": nickname,
+                        "count": count,
+                        "total_likes": total_likes,
+                    }
+                )
             except Exception:
                 pass
 
