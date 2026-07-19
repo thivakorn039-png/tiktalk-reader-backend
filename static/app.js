@@ -42,6 +42,8 @@ const DOM = {
     toggleFollows: document.getElementById("toggle-follows"),
     toggleShares: document.getElementById("toggle-shares"),
     toggleLikes: document.getElementById("toggle-likes"),
+    toggleSfxLaugh: document.getElementById("toggle-sfx-laugh"),
+    toggleSfxApplause: document.getElementById("toggle-sfx-applause"),
 
     // TTS Settings
     voiceSelect: document.getElementById("voice-select"),
@@ -987,7 +989,7 @@ function connectWS() {
                 }
                 // -------------------------
 
-                if (msg.includes("555")) {
+                if (msg.includes("555") && DOM.toggleSfxLaugh && DOM.toggleSfxLaugh.checked) {
                     const laughAudio = new Audio("/static/audio/laugh.mp3");
                     laughAudio.volume = 0.5;
                     laughAudio.play().catch(e => console.error("Laugh audio error:", e));
@@ -1036,7 +1038,7 @@ function connectWS() {
                 const coinsSpent = (data.coinValue || 1) * data.count;
                 if (coinsSpent < minCoins) return;
 
-                if (coinsSpent >= 100) {
+                if (coinsSpent >= 100 && DOM.toggleSfxApplause && DOM.toggleSfxApplause.checked) {
                     const applauseAudio = new Audio("/static/audio/applause.mp3");
                     applauseAudio.volume = 0.5;
                     applauseAudio.play().catch(e => console.error("Applause audio error:", e));

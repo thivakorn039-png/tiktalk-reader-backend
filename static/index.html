@@ -219,7 +219,34 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="add-new-btn">+ เพิ่มการแจ้งเตือนเสียงใหม่</div>
+            </div>
+
+            <!-- Sound Effects Settings -->
+            <div class="settings-card" style="margin-top: 1rem;">
+                <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem; text-transform: uppercase;">เอฟเฟกต์เสียง (Sound Effects)</h4>
+                
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="icon" style="color: #eab308;">😆</span>
+                        <span>พิมพ์ "555" (เสียงหัวเราะ)</span>
+                    </div>
+                    <label class="ios-switch">
+                        <input type="checkbox" id="toggle-sfx-laugh" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="icon" style="color: #f59e0b;">👏</span>
+                        <span>เปย์ 100+ เหรียญ (เสียงปรบมือ)</span>
+                    </div>
+                    <label class="ios-switch">
+                        <input type="checkbox" id="toggle-sfx-applause" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="add-new-btn" onclick="document.querySelector('[data-target=\'tab-tts\']').click()">ตั้งค่าเสียงพูดเพิ่มเติม ></div>
             </div>
         </section>
 
