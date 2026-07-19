@@ -814,6 +814,27 @@ function speakNext() {
     const speed = parseFloat(DOM.speedSlider.value);
     const pitch = parseFloat(DOM.pitchSlider ? DOM.pitchSlider.value : 1.0);
 
+    if (nextItem.type === 'audio') {
+        const audio = new Audio(nextItem.url);
+        audio.volume = nextItem.volume || 1.0;
+        
+        let hasProceeded = false;
+        const proceed = () => {
+            if (!hasProceeded) {
+                hasProceeded = true;
+                speakNext();
+            }
+        };
+
+        audio.onended = proceed;
+        audio.onerror = proceed;
+        audio.play().catch(e => {
+            console.error("SFX error:", e);
+            proceed();
+        });
+        return;
+    }
+
     if (selectedVoiceIndex === "cloud") {
         const url = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(nextItem.text)}&tl=th&client=gtx`;
         const audio = new Audio(url);
@@ -850,8 +871,12 @@ function speakNext() {
     }
 }
 
-function addToQueue(text, priority) {
-    ttsQueue.push({ text, priority });
+function addToQueue(data, priority = 0) {
+    if (typeof data === 'string') {
+        ttsQueue.push({ type: 'text', text: data, priority: priority });
+    } else {
+        ttsQueue.push(data);
+    }
     updateQueueCount();
     if (!isSpeaking) {
         speakNext();
@@ -990,11 +1015,19 @@ function connectWS() {
                 }
                 // -------------------------
 
-                if (msg.includes("555") && DOM.toggleSfxLaugh && DOM.toggleSfxLaugh.checked) {
-                    const laughAudio = new Audio("/static/audio/laugh.mp3");
-                    laughAudio.volume = 0.5;
-                    laughAudio.play().catch(e => console.error("Laugh audio error:", e));
+                // --- Custom SFX Rules (Comment) ---
+                if (typeof customSfxRules !== 'undefined') {
+                    customSfxRules.forEach(rule => {
+                        if (rule.event === 'comment' && msg.includes(rule.condition)) {
+                            if (rule.template) {
+                                const textToRead = formatTemplate(rule.template, { nickName: data.user, user: data.user, comment: msg });
+                                addToQueue(textToRead, 1);
+                            }
+                            addToQueue({ type: 'audio', url: rule.url, volume: rule.volume || 1.0, priority: 1 });
+                        }
+                    });
                 }
+                // ----------------------------------
 
                 if (DOM.toggleComments.checked && shouldRead) {
                     lastCommentTime = now;
@@ -1039,11 +1072,22 @@ function connectWS() {
                 const coinsSpent = (data.coinValue || 1) * data.count;
                 if (coinsSpent < minCoins) return;
 
-                if (coinsSpent >= 100 && DOM.toggleSfxApplause && DOM.toggleSfxApplause.checked) {
-                    const applauseAudio = new Audio("/static/audio/applause.mp3");
-                    applauseAudio.volume = 0.5;
-                    applauseAudio.play().catch(e => console.error("Applause audio error:", e));
+                // --- Custom SFX Rules (Gift) ---
+                if (typeof customSfxRules !== 'undefined') {
+                    customSfxRules.forEach(rule => {
+                        if (rule.event === 'gift') {
+                            const minCoinsRule = parseInt(rule.condition) || 0;
+                            if (coinsSpent >= minCoinsRule) {
+                                if (rule.template) {
+                                    const textToRead = formatTemplate(rule.template, { nickName: data.user, user: data.user, giftName: data.gift, giftCount: data.count, count: data.count });
+                                    addToQueue(textToRead, 2);
+                                }
+                                addToQueue({ type: 'audio', url: rule.url, volume: rule.volume || 1.0, priority: 2 });
+                            }
+                        }
+                    });
                 }
+                // -------------------------------
 
                 if (DOM.toggleGifts.checked) {
                     const textToRead = formatTemplate(
@@ -1224,3 +1268,143 @@ DOM.previewVoiceBtn.addEventListener("click", () => {
 
     addToQueue("สวัสดีครับ นี่คือเสียงตัวอย่างของคุณ", 3);
 });
+
+// --- CUSTOM SFX LOGIC ---
+let customSfxRules = [];
+
+function loadSfxRules() {
+    try {
+        const stored = localStorage.getItem('custom_sfx_rules');
+        if (stored) customSfxRules = JSON.parse(stored);
+    } catch(e) { console.error('Failed to load sfx rules'); }
+    renderSfxRules();
+}
+
+function saveSfxRules() {
+    localStorage.setItem('custom_sfx_rules', JSON.stringify(customSfxRules));
+    renderSfxRules();
+}
+
+function renderSfxRules() {
+    const container = document.getElementById('sfx-rules-container');
+    if (!container) return;
+    container.innerHTML = '';
+    if (customSfxRules.length === 0) {
+        container.innerHTML = '<div style="color:#6b7280; font-size:0.8rem; text-align:center;">ยังไม่มีเอฟเฟกต์เสียง</div>';
+        return;
+    }
+    
+    customSfxRules.forEach((rule, idx) => {
+        const div = document.createElement('div');
+        div.style.cssText = 'background:#2d3748; padding:8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;';
+        
+        let label = rule.event === 'comment' ? 'พิมพ์: ' : 'เปย์: ';
+        label += rule.condition;
+        
+        div.innerHTML = `
+            <div>
+                <div style="font-size:0.85rem; color:white;">${label}</div>
+                <div style="font-size:0.75rem; color:#a0aec0;">${rule.sourceType === 'file' ? 'ไฟล์ในเครื่อง' : 'ลิงก์ภายนอก'}</div>
+            </div>
+            <button onclick="deleteSfxRule(${idx})" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;">ลบ</button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+window.deleteSfxRule = function(idx) {
+    customSfxRules.splice(idx, 1);
+    saveSfxRules();
+};
+
+const sfxOverlay = document.getElementById('sfx-overlay');
+const btnAddSfx = document.getElementById('btn-add-sfx');
+const btnCancelSfx = document.getElementById('btn-cancel-sfx');
+const btnSaveSfx = document.getElementById('btn-save-sfx');
+const sfxEventType = document.getElementById('sfx-event-type');
+const sfxSourceType = document.getElementById('sfx-source-type');
+const sfxConditionLabel = document.getElementById('sfx-condition-label');
+const sfxUrl = document.getElementById('sfx-url');
+const sfxFile = document.getElementById('sfx-file');
+
+if (btnAddSfx) {
+    btnAddSfx.addEventListener('click', () => {
+        sfxOverlay.style.display = 'flex';
+    });
+}
+if (btnCancelSfx) {
+    btnCancelSfx.addEventListener('click', () => {
+        sfxOverlay.style.display = 'none';
+    });
+}
+
+if (sfxEventType) {
+    sfxEventType.addEventListener('change', () => {
+        sfxConditionLabel.textContent = sfxEventType.value === 'comment' ? 'คำที่พิมพ์ (เช่น 555)' : 'มูลค่าของขวัญขั้นต่ำ (เหรียญ)';
+        document.getElementById('sfx-condition-val').placeholder = sfxEventType.value === 'comment' ? '555' : '100';
+    });
+}
+
+if (sfxSourceType) {
+    sfxSourceType.addEventListener('change', () => {
+        if (sfxSourceType.value === 'url') {
+            sfxUrl.style.display = 'block';
+            sfxFile.style.display = 'none';
+        } else {
+            sfxUrl.style.display = 'none';
+            sfxFile.style.display = 'block';
+        }
+    });
+}
+
+if (btnSaveSfx) {
+    btnSaveSfx.addEventListener('click', () => {
+        const event = sfxEventType.value;
+        const condition = document.getElementById('sfx-condition-val').value.trim();
+        const template = document.getElementById('sfx-template').value.trim();
+        const sourceType = sfxSourceType.value;
+        const volume = parseFloat(document.getElementById('sfx-volume').value);
+        
+        if (!condition) {
+            alert('กรุณากรอกเงื่อนไข'); return;
+        }
+
+        const addRule = (urlOrBase64) => {
+            customSfxRules.push({
+                event,
+                condition,
+                template,
+                sourceType,
+                url: urlOrBase64,
+                volume
+            });
+            saveSfxRules();
+            sfxOverlay.style.display = 'none';
+            
+            // clear form
+            document.getElementById('sfx-condition-val').value = '';
+            document.getElementById('sfx-template').value = '';
+            sfxUrl.value = '';
+            sfxFile.value = '';
+        };
+
+        if (sourceType === 'url') {
+            const url = sfxUrl.value.trim();
+            if (!url) { alert('กรุณาใส่ลิงก์เสียง'); return; }
+            addRule(url);
+        } else {
+            const file = sfxFile.files[0];
+            if (!file) { alert('กรุณาเลือกไฟล์เสียง'); return; }
+            if (file.size > 500 * 1024) { alert('ไฟล์เสียงใหญ่เกินไป (ไม่เกิน 500KB)'); return; }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                addRule(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// Load rules on boot
+setTimeout(loadSfxRules, 500);

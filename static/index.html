@@ -223,30 +223,13 @@
 
             <!-- Sound Effects Settings -->
             <div class="settings-card" style="margin-top: 1rem;">
-                <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem; text-transform: uppercase;">เอฟเฟกต์เสียง (Sound Effects)</h4>
-                
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <span class="icon" style="color: #eab308;">😆</span>
-                        <span>พิมพ์ "555" (เสียงหัวเราะ)</span>
-                    </div>
-                    <label class="ios-switch">
-                        <input type="checkbox" id="toggle-sfx-laugh" checked>
-                        <span class="slider"></span>
-                    </label>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                    <h4 class="card-title" style="font-size: 0.85rem; color: #a0aec0; text-transform: uppercase;">เอฟเฟกต์เสียง (Custom SFX)</h4>
+                    <button id="btn-add-sfx" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;">+ สร้างใหม่</button>
                 </div>
-
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <span class="icon" style="color: #f59e0b;">👏</span>
-                        <span>เปย์ 100+ เหรียญ (เสียงปรบมือ)</span>
-                    </div>
-                    <label class="ios-switch">
-                        <input type="checkbox" id="toggle-sfx-applause" checked>
-                        <span class="slider"></span>
-                    </label>
+                <div id="sfx-rules-container" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.5rem;">
+                    <!-- Rules will be rendered here dynamically -->
                 </div>
-                <div class="add-new-btn" onclick="document.querySelector('[data-target=\'tab-tts\']').click()">ตั้งค่าเสียงพูดเพิ่มเติม ></div>
             </div>
         </section>
 
@@ -507,11 +490,57 @@
                 <div class="bs-list-item" data-rank="2"><span>ด้านบน: 2</span><span class="check" style="display:none;">✓</span></div>
                 <div class="bs-list-item" data-rank="3"><span>ด้านบน: 3</span><span class="check" style="display:none;">✓</span></div>
                 <div class="bs-list-item" data-rank="4"><span>ด้านบน: 4</span><span class="check" style="display:none;">✓</span></div>
-                <div class="bs-list-item" data-rank="5"><span>ด้านบน: 5</span><span class="check" style="display:none;">✓</span></div>
+                        <div class="bs-list-item" data-rank="4"><span>ด้านบน: 4</span><span class="check" style="display:none;">✓</span></div>
+                        <div class="bs-list-item" data-rank="5"><span>ด้านบน: 5</span><span class="check" style="display:none;">✓</span></div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <script src="/static/app.js?v=2"></script>
-</body>
-</html>
+            <!-- SFX Rule Modal -->
+            <div class="overlay" id="sfx-overlay" style="display:none; align-items:center; justify-content:center;">
+                <div class="settings-card" style="width: 90%; max-width: 400px; background: #1e1e24; margin:auto; border: 1px solid #333; padding: 1.5rem;">
+                    <h3 style="margin-top:0; margin-bottom:1rem; font-size:1.1rem;">ตั้งค่าเอฟเฟกต์เสียงใหม่</h3>
+                    
+                    <div style="margin-bottom:0.8rem;">
+                        <label style="display:block; font-size:0.85rem; color:#a0aec0; margin-bottom:0.3rem;">เหตุการณ์ (Event)</label>
+                        <select id="sfx-event-type" style="width:100%; padding:0.5rem; background:#2d3748; color:white; border:none; border-radius:4px;">
+                            <option value="comment">เมื่อมีคอมเมนต์ (พิมพ์คำว่า...)</option>
+                            <option value="gift">เมื่อส่งของขวัญ (มูลค่าขั้นต่ำ...)</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom:0.8rem;">
+                        <label id="sfx-condition-label" style="display:block; font-size:0.85rem; color:#a0aec0; margin-bottom:0.3rem;">คำที่พิมพ์ (เช่น 555, สวัสดี)</label>
+                        <input type="text" id="sfx-condition-val" style="width:100%; padding:0.5rem; background:#2d3748; color:white; border:none; border-radius:4px;" placeholder="คำที่ต้องการดักจับ">
+                    </div>
+
+                    <div style="margin-bottom:0.8rem;">
+                        <label style="display:block; font-size:0.85rem; color:#a0aec0; margin-bottom:0.3rem;">เทมเพลตอ่านชื่อ (เว้นว่างได้ถ้าไม่ต้องการ)</label>
+                        <input type="text" id="sfx-template" style="width:100%; padding:0.5rem; background:#2d3748; color:white; border:none; border-radius:4px;" placeholder="{user} ส่งเสียงว่า">
+                    </div>
+
+                    <div style="margin-bottom:0.8rem;">
+                        <label style="display:block; font-size:0.85rem; color:#a0aec0; margin-bottom:0.3rem;">ไฟล์เสียง (เลือกไฟล์ .mp3 หรือใส่ลิงก์)</label>
+                        <select id="sfx-source-type" style="width:100%; padding:0.5rem; background:#2d3748; color:white; border:none; border-radius:4px; margin-bottom:0.5rem;">
+                            <option value="url">ลิงก์เสียง (URL)</option>
+                            <option value="file">อัปโหลดจากเครื่อง (Base64)</option>
+                        </select>
+                        <input type="text" id="sfx-url" style="width:100%; padding:0.5rem; background:#2d3748; color:white; border:none; border-radius:4px;" placeholder="https://.../sound.mp3">
+                        <input type="file" id="sfx-file" accept="audio/*" style="display:none; width:100%; color:#a0aec0;">
+                    </div>
+
+                    <div style="margin-bottom:1.2rem;">
+                        <label style="display:block; font-size:0.85rem; color:#a0aec0; margin-bottom:0.3rem;">ความดังเสียง (Volume)</label>
+                        <input type="range" id="sfx-volume" min="0" max="1" step="0.1" value="0.5" style="width:100%;">
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+                        <button id="btn-cancel-sfx" style="background:#4b5563; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;">ยกเลิก</button>
+                        <button id="btn-save-sfx" style="background:#3b82f6; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;">บันทึก</button>
+                    </div>
+                </div>
+            </div>
+
+            <script src="/static/app.js?v=3"></script>
+        </body>
+    </html>
