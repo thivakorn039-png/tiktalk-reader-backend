@@ -1,9 +1,18 @@
 import asyncio
+import TikTokLive.proto.custom_proto as custom_proto
 from TikTokLive import TikTokLiveClient
 from TikTokLive.events import ConnectEvent, DisconnectEvent, CommentEvent, GiftEvent, FollowEvent, ShareEvent
 from fastapi import WebSocket
 from models import CommentEvent as ModelComment, GiftEvent as ModelGift, FollowEvent as ModelFollow, ShareEvent as ModelShare
 import traceback
+
+# Monkey-patch User.__init__ to ignore unknown kwargs (fixes nickName parsing error in TikTokLive v6.6.5)
+original_user_init = custom_proto.User.__init__
+def patched_user_init(self, **kwargs):
+    valid_keys = self.__dataclass_fields__.keys()
+    filtered = {k: v for k, v in kwargs.items() if k in valid_keys}
+    original_user_init(self, **filtered)
+custom_proto.User.__init__ = patched_user_init
 
 async def start_tiktok_client(username: str, websocket: WebSocket):
     try:
