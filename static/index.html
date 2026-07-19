@@ -272,8 +272,12 @@
                     </div>
                     
                     <div style="border-top: 1px solid var(--border-color); margin-top: 1.5rem; padding-top: 1rem;">
-                        <div id="preview-voice-btn" class="preview-btn" style="text-align: center; color: var(--accent-gold); font-weight: bold; cursor: pointer;">
-                            <span>▶</span> ตัวอย่างเสียง
+                        <label style="display:block; font-size:0.85rem; color:#a0aec0; margin-bottom:0.5rem;">ทดสอบการอ่านออกเสียง</label>
+                        <div style="display:flex; gap:0.5rem;">
+                            <input type="text" id="tts-test-input" style="flex:1; padding:0.75rem; background:rgba(0,0,0,0.2); color:white; border:1px solid var(--border-color); border-radius:0.5rem;" placeholder="สวัสดีครับ นี่คือเสียงตัวอย่าง...">
+                            <button id="preview-voice-btn" style="background:#3b82f6; color:white; border:none; padding:0.75rem 1rem; border-radius:0.5rem; cursor:pointer; font-weight:bold; white-space:nowrap;">
+                                ▶ ฟังเสียง
+                            </button>
                         </div>
                     </div>
                 </div>

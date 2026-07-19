@@ -1268,8 +1268,11 @@ DOM.previewVoiceBtn.addEventListener("click", () => {
     unlockUtterance.volume = 0;
     synth.speak(unlockUtterance);
     new Audio("data:audio/mp3;base64,//MkxAAQ").play().catch((e) => {});
+    
+    const inputEl = document.getElementById("tts-test-input");
+    const textToRead = (inputEl && inputEl.value.trim()) ? inputEl.value.trim() : "สวัสดีครับ นี่คือเสียงตัวอย่างของคุณ";
 
-    addToQueue("สวัสดีครับ นี่คือเสียงตัวอย่างของคุณ", 3);
+    addToQueue(textToRead, 3);
 });
 
 // --- CUSTOM SFX LOGIC ---
