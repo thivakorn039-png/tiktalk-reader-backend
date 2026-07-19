@@ -12,6 +12,10 @@ const DOM = {
     profileModalName: document.getElementById("profile-modal-name"),
     btnChangeChannel: document.getElementById("btn-change-channel"),
     btnCloseProfile: document.getElementById("btn-close-profile"),
+    
+    // Home Profile Center
+    homeAvatar: document.getElementById("home-avatar"),
+    homeUsername: document.getElementById("home-username"),
 
     // Home / Connection
     startBtn: document.getElementById("start-btn"),
@@ -326,11 +330,22 @@ function updateProfileAvatar() {
     if (tiktokAvatar) {
         DOM.profileAvatar.style.backgroundImage = `url(${tiktokAvatar})`;
         DOM.profileAvatar.textContent = "";
+        
+        DOM.homeAvatar.style.backgroundImage = `url(${tiktokAvatar})`;
+        DOM.homeAvatar.textContent = "";
     } else if (tiktokUsername) {
-        DOM.profileAvatar.textContent = tiktokUsername
-            .charAt(0)
-            .toUpperCase();
+        let initial = tiktokUsername.charAt(0).toUpperCase();
+        DOM.profileAvatar.textContent = initial;
         DOM.profileAvatar.style.backgroundImage = "none";
+        
+        DOM.homeAvatar.textContent = initial;
+        DOM.homeAvatar.style.backgroundImage = "none";
+    }
+    
+    if (tiktokUsername) {
+        DOM.homeUsername.textContent = `@${tiktokUsername}`;
+    } else {
+        DOM.homeUsername.textContent = `@username`;
     }
 }
 

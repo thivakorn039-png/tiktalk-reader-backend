@@ -341,3 +341,48 @@ body {
     font-size: 0.95rem; color: #a0aec0; text-align: left;
 }
 .bs-list-item.selected { color: var(--accent-gold); }
+
+/* Home Profile Card */
+.home-profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+    margin-bottom: 1.5rem;
+    background: var(--bg-card);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.home-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--bg-main);
+    border: 3px solid var(--accent-gold);
+    margin-bottom: 1rem;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.2);
+}
+.home-name {
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+.home-change-btn {
+    font-size: 0.9rem;
+    color: #a0aec0;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+.home-change-btn:hover {
+    color: var(--accent-gold);
+}
