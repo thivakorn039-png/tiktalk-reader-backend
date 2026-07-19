@@ -43,34 +43,14 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
                 import traceback
                 await websocket.send_json({"type": "status", "status": "error", "message": f"Comment parsing error: {str(e)}"})
             
-        # @client.on(GiftEvent)
-        # async def on_gift(event: GiftEvent):
-        #     try:
-        #         nickname = getattr(event.user_info, 'nick_name', 'Unknown') if hasattr(event, 'user_info') else 'Unknown'
-        #         model = ModelGift(user=nickname, gift=event.gift.info.name, count=event.gift.count)
-        #         await websocket.send_json(model.model_dump())
-        #     except Exception as e:
-        #         await websocket.send_json({"type": "status", "status": "error", "message": f"Gift parsing error: {str(e)}"})
-
-
         @client.on(GiftEvent)
         async def on_gift(event: GiftEvent):
             try:
-                # 1. ดึงชื่อคนส่ง (รองรับทั้ง event.user และ event.user_info ของไลบรารีแต่ละเวอร์ชัน)
-                user_obj = getattr(event, 'user', getattr(event, 'user_info', None))
-                nickname = getattr(user_obj, 'nickname', getattr(user_obj, 'nick_name', 'Unknown'))
-                
-                # 2. แก้ไขจุดที่พัง: ตัด .info ออก แล้วใช้ getattr ดึงชื่อของขวัญโดยตรง
-                gift_name = getattr(event.gift, 'name', 'Unknown Gift')
-                
-                # 3. ดึงจำนวนของขวัญ/คอมโบ (เวอร์ชันใหม่อาจใช้ repeat_count หรือ count)
-                gift_count = getattr(event.gift, 'repeat_count', getattr(event.gift, 'count', 1))
-                
-                model = ModelGift(user=nickname, gift=gift_name, count=gift_count)
+                nickname = getattr(event.user_info, 'nick_name', 'Unknown') if hasattr(event, 'user_info') else 'Unknown'
+                model = ModelGift(user=nickname, gift=event.gift.info.name, count=event.gift.count)
                 await websocket.send_json(model.model_dump())
             except Exception as e:
                 await websocket.send_json({"type": "status", "status": "error", "message": f"Gift parsing error: {str(e)}"})
-
         
             
         @client.on(FollowEvent)
