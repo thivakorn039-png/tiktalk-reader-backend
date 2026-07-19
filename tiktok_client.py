@@ -172,7 +172,7 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
             except Exception:
                 pass
 
-        await client.start()
+        await client.start(process_connect_events=False)
     except asyncio.CancelledError:
         pass
     except Exception as e:
