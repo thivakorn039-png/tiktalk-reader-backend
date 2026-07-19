@@ -1306,7 +1306,10 @@ function renderSfxRules() {
                 <div style="font-size:0.85rem; color:white;">${label}</div>
                 <div style="font-size:0.75rem; color:#a0aec0;">${rule.sourceType === 'file' ? 'ไฟล์ในเครื่อง' : 'ลิงก์ภายนอก'}</div>
             </div>
-            <button onclick="deleteSfxRule(${idx})" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;">ลบ</button>
+            <div style="display:flex; gap:0.5rem;">
+                <button onclick="playSfxRule(${idx})" style="background:#10b981; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;">▶ เล่น</button>
+                <button onclick="deleteSfxRule(${idx})" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;">ลบ</button>
+            </div>
         `;
         container.appendChild(div);
     });
@@ -1315,6 +1318,15 @@ function renderSfxRules() {
 window.deleteSfxRule = function(idx) {
     customSfxRules.splice(idx, 1);
     saveSfxRules();
+};
+
+window.playSfxRule = function(idx) {
+    const rule = customSfxRules[idx];
+    if (rule.template) {
+        let textToRead = formatTemplate(rule.template, { nickName: "ผู้ทดสอบ", user: "ผู้ทดสอบ", comment: "...", giftName: "ดอกกุหลาบ", giftCount: 1, count: 1 });
+        addToQueue(textToRead, 1);
+    }
+    addToQueue({ type: 'audio', url: rule.url, volume: rule.volume || 1.0, priority: 1 });
 };
 
 const sfxOverlay = document.getElementById('sfx-overlay');
