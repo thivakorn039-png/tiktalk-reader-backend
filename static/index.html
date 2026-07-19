@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#181c24">
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -92,7 +93,6 @@
     <main class="app-content">
         <!-- TAB 1: บ้าน (Home) -->
         <section id="tab-home" class="tab-pane active">
-            
             <div class="home-cards">
                 <!-- Card 1 -->
                 <div class="home-card">
@@ -197,7 +197,6 @@
 
         <!-- TAB 3: ทีทีเอส (TTS) -->
         <section id="tab-tts" class="tab-pane">
-            
             <div class="top-segmented-control">
                 <button class="segment active" data-main-tts="comment">การสนทนาข้อความเป็นคำพูด</button>
                 <button class="segment" data-main-tts="gift">ข้อความเป็นของขวัญคำพูด</button>
@@ -360,8 +359,7 @@
                 </div>
             </div>
             
-            
-            <!-- Follows & Shares (ใส่ข้อความเริ่มต้นไว้ข้างใน เพื่อให้ระบบ TTS และ Alert ดึงไปใช้งานได้) -->
+            <!-- Follows & Shares (ใส่ข้อความเริ่มต้นไว้ข้างใน เพื่อไม่ให้ระบบอ่านเสียงเงียบหายไป) -->
             <div style="display: none;">
                 <textarea id="template-follow">{user} เริ่มติดตามคุณแล้ว</textarea>
                 <textarea id="template-share">{user} ได้แชร์และรีโพสต์ไลฟ์นี้</textarea>
