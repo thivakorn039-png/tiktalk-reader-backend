@@ -42,7 +42,7 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
             except Exception as e:
                 import traceback
                 await websocket.send_json({"type": "status", "status": "error", "message": f"Comment parsing error: {str(e)}"})
------------------------------------ใหม่-----------------------------------------------------------------
+
 
 
         @client.on(GiftEvent)
@@ -95,7 +95,7 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
 
 
 
-----------------------------------------------------เก่า---------------------------------------------------------------------------
+
 
             
     #     @client.on(GiftEvent)
