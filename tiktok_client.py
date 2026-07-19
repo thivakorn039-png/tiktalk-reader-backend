@@ -10,6 +10,7 @@ from TikTokLive.events import (
     FollowEvent,
     GiftEvent,
     ShareEvent,
+    SocialEvent,
 )
 from models import CommentEvent as ModelComment
 from models import FollowEvent as ModelFollow
@@ -141,9 +142,26 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
             except Exception:
                 pass
 
-        @client.on(ShareEvent)
-        async def on_share(event: ShareEvent):
+        @client.on(SocialEvent)
+        async def on_social(event: SocialEvent):
             try:
+                # Check if it's a follow (action 1/2) or share/repost (action 3)
+                key = getattr(event.base_message.display_text, "key", "").lower()
+                
+                is_follow = "follow" in key
+                is_share = "share" in key
+                is_repost = "repost" in key
+                
+                if is_follow:
+                    return # Handled by on_follow
+                    
+                if not (is_share or is_repost):
+                    # If it's a generic share (action=3) but key doesn't contain share/repost
+                    if getattr(event, "action", 0) == 3:
+                        is_share = True
+                    else:
+                        return
+
                 user_obj = getattr(
                     event, "user", getattr(event, "user_info", None)
                 )
@@ -154,12 +172,6 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
                 )
                 if nickname == "Unknown":
                     nickname = getattr(user_obj, "unique_id", "Unknown")
-
-                # ตรวจสอบว่าเป็นการรีโพสต์ (Repost) หรือไม่
-                is_repost = (
-                    getattr(event, "is_repost", False)
-                    or getattr(event, "action", "") == "repost"
-                )
 
                 # ส่งข้อมูลแบบกำหนดเองเพื่อรองรับทั้ง share และ repost
                 await websocket.send_json(
