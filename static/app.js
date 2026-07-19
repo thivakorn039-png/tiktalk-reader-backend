@@ -789,6 +789,7 @@ function formatTemplate(templateStr, data) {
     result = result.replace(/{comment}/g, data.comment || "");
     result = result.replace(/{giftName}/g, data.giftName || "");
     result = result.replace(/{giftCount}/g, data.giftCount || "1");
+    result = result.replace(/{count}/g, data.count || "1");
     return result;
 }
 
