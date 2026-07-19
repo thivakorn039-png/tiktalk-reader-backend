@@ -18,7 +18,9 @@ from models import ShareEvent as ModelShare
 
 async def start_tiktok_client(username: str, websocket: WebSocket):
     try:
-        client = TikTokLiveClient(unique_id=username)
+        # ทำความสะอาดชื่อช่อง ตัดช่องว่าง และตัด @ ออกถ้ามีคนเผลอใส่มา
+        clean_username = username.strip().lstrip("@")
+        client = TikTokLiveClient(unique_id=clean_username)
 
         @client.on(ConnectEvent)
         async def on_connect(event: ConnectEvent):
@@ -57,7 +59,6 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
         async def on_comment(event: CommentEvent):
             try:
                 msg = getattr(event, "comment", getattr(event, "text", ""))
-                # ปรับการดึงชื่อให้รองรับ TikTokLive เวอร์ชันใหม่
                 user_obj = getattr(
                     event, "user", getattr(event, "user_info", None)
                 )
@@ -85,7 +86,6 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
         @client.on(GiftEvent)
         async def on_gift(event: GiftEvent):
             try:
-                # 1. ดึงชื่อคนส่ง (รองรับทั้งเวอร์ชันเก่าและใหม่)
                 user_obj = getattr(
                     event, "user", getattr(event, "user_info", None)
                 )
@@ -97,7 +97,6 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
                 if nickname == "Unknown":
                     nickname = getattr(user_obj, "unique_id", "Unknown")
 
-                # 2. แก้ปัญหา Gift info error: ดึงชื่อและจำนวนของขวัญแบบไม่ง้อ .info
                 gift_name = getattr(event.gift, "name", "Gift")
                 gift_count = getattr(
                     event.gift, "count", getattr(event.gift, "repeat_count", 1)
@@ -119,7 +118,6 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
         @client.on(FollowEvent)
         async def on_follow(event: FollowEvent):
             try:
-                # แก้ปัญหา Follow ขึ้น @Unknown
                 user_obj = getattr(
                     event, "user", getattr(event, "user_info", None)
                 )
@@ -139,24 +137,33 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
         @client.on(ShareEvent)
         async def on_share(event: ShareEvent):
             try:
-                user_obj = getattr(event, "user", getattr(event, "user_info", None))
-                nickname = getattr(user_obj, "nick_name", getattr(user_obj, "nickname", "Unknown"))
+                user_obj = getattr(
+                    event, "user", getattr(event, "user_info", None)
+                )
+                nickname = getattr(
+                    user_obj,
+                    "nick_name",
+                    getattr(user_obj, "nickname", "Unknown"),
+                )
                 if nickname == "Unknown":
                     nickname = getattr(user_obj, "unique_id", "Unknown")
 
-                model = ModelShare(user=nickname)
-                await websocket.send_json(model.model_dump())
-            except Exception as e:
-                # เปลี่ยนจาก pass ให้พิมพ์บอกใน Console และส่งไปที่หน้าเว็บครับ
-                print(f"Share Event Error: {e}")
-                try:
-                    await websocket.send_json({
-                        "type": "status", 
-                        "status": "error", 
-                        "message": f"Share parsing error: {str(e)}"
-                    })
-                except Exception:
-                    pass
+                # ตรวจสอบว่าเป็นการรีโพสต์ (Repost) หรือไม่
+                is_repost = (
+                    getattr(event, "is_repost", False)
+                    or getattr(event, "action", "") == "repost"
+                )
+
+                # ส่งข้อมูลแบบกำหนดเองเพื่อรองรับทั้ง share และ repost
+                await websocket.send_json(
+                    {
+                        "type": "repost" if is_repost else "share",
+                        "user": nickname,
+                        "is_repost": is_repost,
+                    }
+                )
+            except Exception:
+                pass
 
         await client.start()
     except asyncio.CancelledError:
@@ -175,5 +182,3 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
             )
         except Exception:
             pass
-
-        
