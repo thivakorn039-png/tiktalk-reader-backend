@@ -139,22 +139,24 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
         @client.on(ShareEvent)
         async def on_share(event: ShareEvent):
             try:
-                # ดัก Share ไว้ด้วยจะได้ไม่ขึ้น @Unknown เหมือนกันครับ
-                user_obj = getattr(
-                    event, "user", getattr(event, "user_info", None)
-                )
-                nickname = getattr(
-                    user_obj,
-                    "nick_name",
-                    getattr(user_obj, "nickname", "Unknown"),
-                )
+                user_obj = getattr(event, "user", getattr(event, "user_info", None))
+                nickname = getattr(user_obj, "nick_name", getattr(user_obj, "nickname", "Unknown"))
                 if nickname == "Unknown":
                     nickname = getattr(user_obj, "unique_id", "Unknown")
 
                 model = ModelShare(user=nickname)
                 await websocket.send_json(model.model_dump())
-            except Exception:
-                pass
+            except Exception as e:
+                # เปลี่ยนจาก pass ให้พิมพ์บอกใน Console และส่งไปที่หน้าเว็บครับ
+                print(f"Share Event Error: {e}")
+                try:
+                    await websocket.send_json({
+                        "type": "status", 
+                        "status": "error", 
+                        "message": f"Share parsing error: {str(e)}"
+                    })
+                except Exception:
+                    pass
 
         await client.start()
     except asyncio.CancelledError:
@@ -173,3 +175,5 @@ async def start_tiktok_client(username: str, websocket: WebSocket):
             )
         except Exception:
             pass
+
+        
